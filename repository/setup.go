@@ -1,3 +1,6 @@
+/*
+Copyright © 2024 Nicolas Dufour
+*/
 package repository
 
 import (
