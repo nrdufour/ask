@@ -48,6 +48,8 @@ func init() {
 	rootCmd.PersistentFlags().StringP("repository", "r", repositoryDefaultValue, "repository directory")
 
 	viper.BindPFlag("repository", rootCmd.PersistentFlags().Lookup("repository"))
+
+	viper.SetDefault("data", "data")
 }
 
 // initConfig reads in config file and ENV variables if set.
