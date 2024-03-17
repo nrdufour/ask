@@ -50,6 +50,7 @@ func init() {
 	viper.BindPFlag("repository", rootCmd.PersistentFlags().Lookup("repository"))
 
 	viper.SetDefault("data", "data")
+	viper.SetDefault("db", "db")
 }
 
 // initConfig reads in config file and ENV variables if set.
