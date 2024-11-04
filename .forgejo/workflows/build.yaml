@@ -1,5 +1,16 @@
 name: ci
-on: [push]
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.forgejo/workflows/renovate.yaml'
+      - 'LICENSE'
+      - 'README.md'
+      - 'renovate.json'
+      - '.envrc'
+      - '.gitignore'
+      - 'default.nix'
 
 jobs:
   docker:
