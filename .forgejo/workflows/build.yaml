@@ -7,7 +7,7 @@ on:
       - '.forgejo/workflows/renovate.yaml'
       - 'LICENSE'
       - 'README.md'
-      - 'renovate.json'
+      - 'renovate.json5'
       - '.envrc'
       - '.gitignore'
       - 'default.nix'
