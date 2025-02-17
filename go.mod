@@ -4,7 +4,7 @@ go 1.21.4
 
 require (
 	github.com/go-git/go-git/v5 v5.13.2
-	github.com/spf13/cobra v1.9.0
+	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 )
 
