@@ -27,5 +27,11 @@
       "extends": ["schedule:daily"],
       "matchDepNames": ["ghcr.io/renovatebot/renovate"]
     },
+    // Do not go further than v4 as it cant work on the current runners
+    {
+      "matchPackageNames": ["actions/checkout"],
+      "allowedVersions": "<5.0.0",
+      "automerge": false
+    },
   ],
 }
