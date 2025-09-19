@@ -4,7 +4,10 @@ Copyright © 2024 Nicolas Dufour
 package cmd
 
 import (
+	"ask/db"
 	"ask/repository"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -31,4 +34,11 @@ func doInit() {
 
 	// Get the data
 	repository.RetrieveDataFromGit()
+
+	// Initialize the database and import airport data
+	err := db.InitializeDatabase()
+	if err != nil {
+		fmt.Printf("Error initializing database: %v\n", err)
+		os.Exit(1)
+	}
 }
