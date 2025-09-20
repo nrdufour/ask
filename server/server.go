@@ -49,7 +49,7 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/version", s.versionHandler).Methods("GET")
 	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
 	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
-	s.router.HandleFunc("/api/airport/country", s.countryListHandler).Methods("GET")
+	s.router.HandleFunc("/api/country", s.countryListHandler).Methods("GET")
 }
 
 func (s *Server) Start() error {

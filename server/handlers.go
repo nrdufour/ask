@@ -40,14 +40,23 @@ type Airport struct {
 	Keywords         string  `json:"keywords"`
 }
 
+type Country struct {
+	ID            int    `json:"id"`
+	Code          string `json:"code"`
+	Name          string `json:"name"`
+	Continent     string `json:"continent"`
+	WikipediaLink string `json:"wikipedia_link"`
+	Keywords      string `json:"keywords"`
+}
+
 type SearchResponse struct {
 	Airports []Airport `json:"airports"`
 	Count    int       `json:"count"`
 }
 
 type CountryListResponse struct {
-	Countries []string `json:"countries"`
-	Count     int      `json:"count"`
+	Countries []Country `json:"countries"`
+	Count     int       `json:"count"`
 }
 
 func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
@@ -228,8 +237,8 @@ func isValidCountryCode(code string) bool {
 func (s *Server) countryListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Query to get distinct country codes from the airports table
-	query := "SELECT DISTINCT iso_country FROM airports WHERE iso_country IS NOT NULL AND iso_country != '' ORDER BY iso_country"
+	// Query to get all countries from the countries table
+	query := "SELECT id, code, name, continent, wikipedia_link, keywords FROM countries ORDER BY name"
 
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -238,18 +247,33 @@ func (s *Server) countryListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var countries []string
+	var countries []Country
 	for rows.Next() {
-		var country sql.NullString
-		err := rows.Scan(&country)
+		var (
+			id            sql.NullInt64
+			code          sql.NullString
+			name          sql.NullString
+			continent     sql.NullString
+			wikipediaLink sql.NullString
+			keywords      sql.NullString
+		)
+
+		err := rows.Scan(&id, &code, &name, &continent, &wikipediaLink, &keywords)
 		if err != nil {
 			http.Error(w, "Error scanning database results", http.StatusInternalServerError)
 			return
 		}
 
-		if country.Valid && country.String != "" {
-			countries = append(countries, country.String)
+		country := Country{
+			ID:            int(id.Int64),
+			Code:          code.String,
+			Name:          name.String,
+			Continent:     continent.String,
+			WikipediaLink: wikipediaLink.String,
+			Keywords:      keywords.String,
 		}
+
+		countries = append(countries, country)
 	}
 
 	if err = rows.Err(); err != nil {
