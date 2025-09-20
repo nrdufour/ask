@@ -5,5 +5,6 @@
       go
       sqlite
       jq
+      flyctl
     ];
 }
