@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .home-link {
+            display: inline-block;
+            color: #ff6b6b;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .home-link:hover {
+            color: #ff5252;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+        }
+        input[type="text"], select {
+            width: 100%;
+            max-width: 350px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        select option {
+            background: #764ba2;
+            color: white;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        button:disabled {
+            background: rgba(108, 117, 125, 0.6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .loading {
+            display: none;
+            color: #ff6b6b;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        .error {
+            color: #ffb3b3;
+            margin-top: 10px;
+            display: none;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+        .results {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .results h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 400;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+        td {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        td strong {
+            color: white;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .no-results {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+        .results-count {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .main-content {
+                padding: 25px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            input[type="text"], select {
+                max-width: 100%;
+            }
+            table {
+                font-size: 0.9rem;
+            }
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <a href="/" class="home-link">← Back to Home</a>
+            <h1>✈️ Airport Search</h1>
+            
+            <form id="searchForm">
+            <div class="form-group">
+                <label for="airportName">Airport Name:</label>
+                <input type="text" id="airportName" name="name" placeholder="Enter airport name..." required>
+            </div>
+            
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <select id="country" name="country">
+                    <option value="ALL">ALL</option>
+                </select>
+                <div class="loading" id="countryLoading">Loading countries...</div>
+                <div class="error" id="countryError">Error loading countries</div>
+            </div>
+            
+            <button type="submit" id="searchButton">Search Airports</button>
+            <div class="loading" id="searchLoading">Searching...</div>
+            <div class="error" id="searchError"></div>
+        </form>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+            <h2>Search Results</h2>
+            <div class="results-count" id="resultsCount"></div>
+            <div id="resultsTable"></div>
+        </div>
+    </div>
+
+    <script>
+        // Load countries on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCountries();
+        });
+
+        // Load countries from API
+        async function loadCountries() {
+            const countrySelect = document.getElementById('country');
+            const countryLoading = document.getElementById('countryLoading');
+            const countryError = document.getElementById('countryError');
+            
+            countryLoading.style.display = 'block';
+            countryError.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/country');
+                if (!response.ok) {
+                    throw new Error('Failed to load countries');
+                }
+                
+                const data = await response.json();
+                
+                // Clear existing options except ALL
+                countrySelect.innerHTML = '<option value="ALL">ALL</option>';
+                
+                // Add countries to dropdown, sorted by name
+                data.countries.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country.code;  // Use code as value instead of id
+                    option.textContent = country.name;
+                    countrySelect.appendChild(option);
+                });
+                
+                countryLoading.style.display = 'none';
+            } catch (error) {
+                console.error('Error loading countries:', error);
+                countryLoading.style.display = 'none';
+                countryError.style.display = 'block';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const airportName = document.getElementById('airportName').value.trim();
+            const country = document.getElementById('country').value;
+            const searchButton = document.getElementById('searchButton');
+            const searchLoading = document.getElementById('searchLoading');
+            const searchError = document.getElementById('searchError');
+            const results = document.getElementById('results');
+            
+            if (!airportName) {
+                searchError.textContent = 'Please enter an airport name';
+                searchError.style.display = 'block';
+                return;
+            }
+            
+            // Show loading state
+            searchButton.disabled = true;
+            searchLoading.style.display = 'block';
+            searchError.style.display = 'none';
+            results.style.display = 'none';
+            
+            try {
+                // Build API URL
+                let apiUrl = `/api/airport/search?name=${encodeURIComponent(airportName)}`;
+                if (country !== 'ALL') {
+                    apiUrl += `&country=${encodeURIComponent(country)}`;
+                }
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error searching airports:', error);
+                searchError.textContent = 'Error searching airports. Please try again.';
+                searchError.style.display = 'block';
+            } finally {
+                // Hide loading state
+                searchButton.disabled = false;
+                searchLoading.style.display = 'none';
+            }
+        });
+
+        // Display search results
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const resultsCount = document.getElementById('resultsCount');
+            const resultsTable = document.getElementById('resultsTable');
+            
+            resultsCount.textContent = `Found ${data.count} airport(s)`;
+            
+            if (data.count === 0) {
+                resultsTable.innerHTML = '<div class="no-results">No airports found matching your criteria.</div>';
+            } else {
+                // Create table
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>IATA</th>
+                                <th>ICAO</th>
+                                <th>City</th>
+                                <th>Country</th>
+                                <th>Type</th>
+                                <th>Elevation (ft)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.airports.forEach(airport => {
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${escapeHtml(airport.name || 'N/A')}</strong></td>
+                            <td>${escapeHtml(airport.iata_code || 'N/A')}</td>
+                            <td>${escapeHtml(airport.icao_code || 'N/A')}</td>
+                            <td>${escapeHtml(airport.municipality || 'N/A')}</td>
+                            <td>${escapeHtml(airport.iso_country || 'N/A')}</td>
+                            <td>${escapeHtml(airport.type || 'N/A')}</td>
+                            <td>${airport.elevation_ft || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += '</tbody></table>';
+                resultsTable.innerHTML = tableHTML;
+            }
+            
+            results.style.display = 'block';
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport Swiss Knife</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 60px;
+        }
+        .header h1 {
+            font-size: 3.5rem;
+            margin: 0 0 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 300;
+        }
+        .header h1 .swiss {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+        .header p {
+            font-size: 1.2rem;
+            margin: 0;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        .nav-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .nav-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #ffffff;
+            font-weight: 400;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin: 0 0 15px 0;
+            color: #ffffff;
+        }
+        .feature-card p {
+            font-size: 1rem;
+            margin: 0 0 20px 0;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .feature-link {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+        .feature-link:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        .footer {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        .footer p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .version {
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+        .airplane-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            .nav-section {
+                padding: 30px 20px;
+                margin: 0 20px;
+            }
+            .feature-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Airport <span class="swiss">Swiss Knife</span></h1>
+            <p>Your comprehensive airport information toolkit</p>
+        </div>
+        
+        <div class="nav-section">
+            <h2>Available Tools</h2>
+            
+            <div class="feature-card" onclick="window.location.href='/airports'">
+                <div class="airplane-icon">✈️</div>
+                <h3>Airport Search</h3>
+                <p>Search and discover airports worldwide. Find detailed information including IATA/ICAO codes, location details, and more. Filter by country to narrow down your search.</p>
+                <a href="/airports" class="feature-link" onclick="event.stopPropagation()">Start Searching</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Airport Swiss Knife - Version <span class="version">{{.Version}}</span></p>
+    </div>
+</body>
+</html>

@@ -46,10 +46,15 @@ func NewServer(port int) *Server {
 }
 
 func (s *Server) setupRoutes() {
+	// API routes
 	s.router.HandleFunc("/version", s.versionHandler).Methods("GET")
 	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
 	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
 	s.router.HandleFunc("/api/country", s.countryListHandler).Methods("GET")
+
+	// Web routes
+	s.router.HandleFunc("/", s.indexPageHandler).Methods("GET")
+	s.router.HandleFunc("/airports", s.airportsPageHandler).Methods("GET")
 }
 
 func (s *Server) Start() error {
