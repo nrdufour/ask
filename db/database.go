@@ -25,6 +25,11 @@ func InitializeDatabase() error {
 		return fmt.Errorf("failed to import airports data: %w", err)
 	}
 
+	err = ImportCountriesCSV(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to import countries data: %w", err)
+	}
+
 	fmt.Println("Database initialized successfully!")
 	return nil
 }
@@ -57,7 +62,7 @@ func createDatabase() (string, error) {
 	defer db.Close()
 
 	// Create airports table
-	createTableSQL := `CREATE TABLE IF NOT EXISTS airports (
+	createAirportsTableSQL := `CREATE TABLE IF NOT EXISTS airports (
 		id INTEGER,
 		ident TEXT,
 		type TEXT,
@@ -79,9 +84,24 @@ func createDatabase() (string, error) {
 		keywords TEXT
 	);`
 
-	_, err = db.Exec(createTableSQL)
+	_, err = db.Exec(createAirportsTableSQL)
 	if err != nil {
-		return "", fmt.Errorf("failed to create table: %w", err)
+		return "", fmt.Errorf("failed to create airports table: %w", err)
+	}
+
+	// Create countries table
+	createCountriesTableSQL := `CREATE TABLE IF NOT EXISTS countries (
+		id INTEGER,
+		code TEXT,
+		name TEXT,
+		continent TEXT,
+		wikipedia_link TEXT,
+		keywords TEXT
+	);`
+
+	_, err = db.Exec(createCountriesTableSQL)
+	if err != nil {
+		return "", fmt.Errorf("failed to create countries table: %w", err)
 	}
 
 	fmt.Printf("Database created at: %s\n", dbPath)
