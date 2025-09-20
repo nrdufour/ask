@@ -51,6 +51,7 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
 	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
 	s.router.HandleFunc("/api/country", s.countryListHandler).Methods("GET")
+	s.router.HandleFunc("/api/import/status", s.importStatusHandler).Methods("GET")
 
 	// Web routes
 	s.router.HandleFunc("/", s.indexPageHandler).Methods("GET")

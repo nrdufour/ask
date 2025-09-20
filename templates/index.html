@@ -23,6 +23,15 @@
             align-items: center;
             text-align: center;
             padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .content-wrapper {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         .header {
             margin-bottom: 60px;
@@ -51,6 +60,15 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             max-width: 600px;
             width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .status-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 350px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
         .nav-section h2 {
@@ -123,6 +141,37 @@
             margin-bottom: 15px;
             display: block;
         }
+        .status-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .status-item h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            color: #ff6b6b;
+            text-transform: capitalize;
+        }
+        .status-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .status-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        .status-value {
+            opacity: 0.8;
+            font-family: monospace;
+        }
+        .commit-hash {
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
         
         @media (max-width: 768px) {
             .header h1 {
@@ -135,6 +184,15 @@
             .feature-card {
                 padding: 25px 20px;
             }
+            .content-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .status-section {
+                min-width: auto;
+                width: 100%;
+                margin: 0 20px;
+            }
         }
     </style>
 </head>
@@ -145,14 +203,45 @@
             <p>Your comprehensive airport information toolkit</p>
         </div>
         
-        <div class="nav-section">
-            <h2>Available Tools</h2>
+        <div class="content-wrapper">
+            <div class="nav-section">
+                <h2>Available Tools</h2>
+                
+                <div class="feature-card" onclick="window.location.href='/airports'">
+                    <div class="airplane-icon">✈️</div>
+                    <h3>Airport Search</h3>
+                    <p>Search and discover airports worldwide. Find detailed information including IATA/ICAO codes, location details, and more. Filter by country to narrow down your search.</p>
+                    <a href="/airports" class="feature-link" onclick="event.stopPropagation()">Start Searching</a>
+                </div>
+            </div>
             
-            <div class="feature-card" onclick="window.location.href='/airports'">
-                <div class="airplane-icon">✈️</div>
-                <h3>Airport Search</h3>
-                <p>Search and discover airports worldwide. Find detailed information including IATA/ICAO codes, location details, and more. Filter by country to narrow down your search.</p>
-                <a href="/airports" class="feature-link" onclick="event.stopPropagation()">Start Searching</a>
+            <div class="status-section">
+                <h2>Data Import Status</h2>
+                {{range .ImportStatus}}
+                <div class="status-item">
+                    <h4>{{.TableName}}</h4>
+                    <div class="status-detail">
+                        <span class="status-label">Records:</span>
+                        <span class="status-value">{{.RecordCount}}</span>
+                    </div>
+                    <div class="status-detail">
+                        <span class="status-label">Last Import:</span>
+                        <span class="status-value">{{.LastImportDate}}</span>
+                    </div>
+                    <div class="status-detail">
+                        <span class="status-label">Data Source:</span>
+                        <span class="status-value">{{.GitCommitDate}}</span>
+                    </div>
+                    <div class="status-detail">
+                        <span class="status-label">Commit:</span>
+                        <span class="status-value commit-hash">{{slice .GitCommitHash 0 12}}...</span>
+                    </div>
+                </div>
+                {{else}}
+                <div class="status-item">
+                    <p>No import data available yet. Run the initialization command to import data.</p>
+                </div>
+                {{end}}
             </div>
         </div>
     </div>

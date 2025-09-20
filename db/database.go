@@ -104,6 +104,20 @@ func createDatabase() (string, error) {
 		return "", fmt.Errorf("failed to create countries table: %w", err)
 	}
 
+	// Create import_status table to track git commit information
+	createImportStatusTableSQL := `CREATE TABLE IF NOT EXISTS import_status (
+		table_name TEXT PRIMARY KEY,
+		last_import_date TEXT,
+		git_commit_hash TEXT,
+		git_commit_date TEXT,
+		record_count INTEGER
+	);`
+
+	_, err = db.Exec(createImportStatusTableSQL)
+	if err != nil {
+		return "", fmt.Errorf("failed to create import_status table: %w", err)
+	}
+
 	fmt.Printf("Database created at: %s\n", dbPath)
 	return dbPath, nil
 }

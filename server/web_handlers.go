@@ -7,7 +7,8 @@ import (
 )
 
 type IndexPageData struct {
-	Version string
+	Version      string
+	ImportStatus []ImportStatus
 }
 
 func (s *Server) airportsPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,9 +42,42 @@ func (s *Server) indexPageHandler(w http.ResponseWriter, r *http.Request) {
 	// Set content type to HTML
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	// Prepare template data with version
+	// Fetch import status data - handle case where database or table doesn't exist
+	var importStatus []ImportStatus
+	if s.db != nil {
+		query := `SELECT table_name, last_import_date, git_commit_hash, git_commit_date, record_count 
+				  FROM import_status 
+				  ORDER BY table_name`
+
+		rows, err := s.db.Query(query)
+		if err != nil {
+			// If table doesn't exist, continue with empty status - don't error
+			// This happens when database hasn't been initialized yet
+			importStatus = []ImportStatus{}
+		} else {
+			defer rows.Close()
+			
+			for rows.Next() {
+				var status ImportStatus
+				err := rows.Scan(&status.TableName, &status.LastImportDate, &status.GitCommitHash, &status.GitCommitDate, &status.RecordCount)
+				if err != nil {
+					http.Error(w, "Failed to scan row", http.StatusInternalServerError)
+					return
+				}
+				importStatus = append(importStatus, status)
+			}
+
+			if err = rows.Err(); err != nil {
+				http.Error(w, "Row iteration failed", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	// Prepare template data with version and import status
 	data := IndexPageData{
-		Version: VERSION,
+		Version:      VERSION,
+		ImportStatus: importStatus,
 	}
 
 	// Execute the template

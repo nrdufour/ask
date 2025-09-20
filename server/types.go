@@ -50,3 +50,15 @@ type CountryListResponse struct {
 	Countries []Country `json:"countries"`
 	Count     int       `json:"count"`
 }
+
+type ImportStatus struct {
+	TableName        string `json:"table_name"`
+	LastImportDate   string `json:"last_import_date"`
+	GitCommitHash    string `json:"git_commit_hash"`
+	GitCommitDate    string `json:"git_commit_date"`
+	RecordCount      int    `json:"record_count"`
+}
+
+type ImportStatusResponse struct {
+	Tables []ImportStatus `json:"tables"`
+}

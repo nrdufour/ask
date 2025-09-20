@@ -11,10 +11,56 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/go-git/go-git/v5"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
 )
+
+// getGitCommitInfo retrieves the latest git commit information from the data directory
+func getGitCommitInfo() (string, string, error) {
+	repoDir := viper.GetString("repository")
+	dataDir := filepath.Join(repoDir, viper.GetString("data"))
+	
+	repo, err := git.PlainOpen(dataDir)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to open git repository: %w", err)
+	}
+	
+	ref, err := repo.Head()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get HEAD reference: %w", err)
+	}
+	
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get commit object: %w", err)
+	}
+	
+	return ref.Hash().String(), commit.Author.When.Format(time.RFC3339), nil
+}
+
+// updateImportStatus updates the import status table with git commit information
+func updateImportStatus(db *sql.DB, tableName string, recordCount int) error {
+	commitHash, commitDate, err := getGitCommitInfo()
+	if err != nil {
+		return fmt.Errorf("failed to get git commit info: %w", err)
+	}
+	
+	importDate := time.Now().Format(time.RFC3339)
+	
+	query := `INSERT OR REPLACE INTO import_status 
+			  (table_name, last_import_date, git_commit_hash, git_commit_date, record_count) 
+			  VALUES (?, ?, ?, ?, ?)`
+	
+	_, err = db.Exec(query, tableName, importDate, commitHash, commitDate, recordCount)
+	if err != nil {
+		return fmt.Errorf("failed to update import status: %w", err)
+	}
+	
+	return nil
+}
 
 // ImportAirportsCSV imports the airports.csv file into the database
 func ImportAirportsCSV(dbPath string) error {
@@ -101,6 +147,12 @@ func ImportAirportsCSV(dbPath string) error {
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	// Update import status
+	err = updateImportStatus(db, "airports", recordCount)
+	if err != nil {
+		return fmt.Errorf("failed to update import status: %w", err)
 	}
 
 	fmt.Printf("Successfully imported %d airport records\n", recordCount)
@@ -192,6 +244,12 @@ func ImportCountriesCSV(dbPath string) error {
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	// Update import status
+	err = updateImportStatus(db, "countries", recordCount)
+	if err != nil {
+		return fmt.Errorf("failed to update import status: %w", err)
 	}
 
 	fmt.Printf("Successfully imported %d country records\n", recordCount)
