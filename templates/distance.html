@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport Distance Calculator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .home-link {
+            display: inline-block;
+            color: #ff6b6b;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .home-link:hover {
+            color: #ff5252;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .form-inputs {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .form-submit {
+            text-align: center;
+            margin-top: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: none;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        button:disabled {
+            background: rgba(108, 117, 125, 0.6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .loading {
+            display: none;
+            color: #ff6b6b;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        .error {
+            color: #ffb3b3;
+            margin-top: 10px;
+            display: none;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+        .results {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .results h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 400;
+            text-align: center;
+        }
+        .distance-result {
+            text-align: center;
+            background: rgba(255, 107, 107, 0.2);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+        .distance-value {
+            font-size: 3rem;
+            font-weight: 600;
+            color: #ff6b6b;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .distance-unit {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .airport-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .airport-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .airport-card h3 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+        .airport-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .airport-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        .airport-value {
+            opacity: 0.8;
+            font-family: monospace;
+        }
+        #map {
+            height: 400px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .main-content {
+                padding: 25px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            input[type="text"] {
+                max-width: 100%;
+            }
+            .airport-info {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .distance-value {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <a href="/" class="home-link">← Back to Home</a>
+            <h1>📏 Airport Distance Calculator</h1>
+            
+            <form id="distanceForm">
+                <div class="form-inputs">
+                    <div class="form-group">
+                        <label for="departure">Departure Airport (ICAO):</label>
+                        <input type="text" id="departure" name="departure" placeholder="e.g., KJFK" maxlength="4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination Airport (ICAO):</label>
+                        <input type="text" id="destination" name="destination" placeholder="e.g., EGLL" maxlength="4" required>
+                    </div>
+                </div>
+                <div class="form-submit">
+                    <button type="submit" id="calculateButton">Calculate Distance</button>
+                    <div class="loading" id="loading">Calculating distance...</div>
+                    <div class="error" id="error"></div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Distance Calculation Result</h2>
+            
+            <div class="distance-result">
+                <div>Distance between airports</div>
+                <div class="distance-value" id="distanceValue">0</div>
+                <div class="distance-unit">nautical miles</div>
+            </div>
+            
+            <div class="airport-info" id="airportInfo">
+                <!-- Airport cards will be populated by JavaScript -->
+            </div>
+            
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map = null;
+
+        // Format input to uppercase as user types
+        document.getElementById('departure').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        document.getElementById('destination').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        // Handle form submission
+        document.getElementById('distanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const departure = document.getElementById('departure').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            const calculateButton = document.getElementById('calculateButton');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            // Validation
+            if (!departure || !destination) {
+                error.textContent = 'Please enter both departure and destination ICAO codes';
+                error.style.display = 'block';
+                return;
+            }
+            
+            if (departure.length !== 4 || destination.length !== 4) {
+                error.textContent = 'ICAO codes must be exactly 4 characters long';
+                error.style.display = 'block';
+                return;
+            }
+            
+            if (departure === destination) {
+                error.textContent = 'Departure and destination airports cannot be the same';
+                error.style.display = 'block';
+                return;
+            }
+            
+            // Show loading state
+            calculateButton.disabled = true;
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.style.display = 'none';
+            
+            try {
+                const apiUrl = `/api/airport/distance?departure=${encodeURIComponent(departure)}&destination=${encodeURIComponent(destination)}`;
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Distance calculation failed');
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (err) {
+                console.error('Error calculating distance:', err);
+                error.textContent = err.message || 'Error calculating distance. Please try again.';
+                error.style.display = 'block';
+            } finally {
+                // Hide loading state
+                calculateButton.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // Display calculation results
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const distanceValue = document.getElementById('distanceValue');
+            const airportInfo = document.getElementById('airportInfo');
+            
+            // Update distance
+            distanceValue.textContent = Math.round(data.distance_nm);
+            
+            // Create airport cards
+            airportInfo.innerHTML = `
+                <div class="airport-card">
+                    <h3>📍 Departure</h3>
+                    <div class="airport-detail">
+                        <span class="airport-label">Name:</span>
+                        <span class="airport-value">${escapeHtml(data.departure_airport.name)}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">ICAO:</span>
+                        <span class="airport-value">${escapeHtml(data.departure_airport.icao_code)}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">IATA:</span>
+                        <span class="airport-value">${escapeHtml(data.departure_airport.iata_code || 'N/A')}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">City:</span>
+                        <span class="airport-value">${escapeHtml(data.departure_airport.municipality || 'N/A')}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">Country:</span>
+                        <span class="airport-value">${escapeHtml(data.departure_airport.iso_country)}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">Coordinates:</span>
+                        <span class="airport-value">${data.departure_airport.latitude_deg.toFixed(4)}, ${data.departure_airport.longitude_deg.toFixed(4)}</span>
+                    </div>
+                </div>
+                <div class="airport-card">
+                    <h3>🎯 Destination</h3>
+                    <div class="airport-detail">
+                        <span class="airport-label">Name:</span>
+                        <span class="airport-value">${escapeHtml(data.destination_airport.name)}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">ICAO:</span>
+                        <span class="airport-value">${escapeHtml(data.destination_airport.icao_code)}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">IATA:</span>
+                        <span class="airport-value">${escapeHtml(data.destination_airport.iata_code || 'N/A')}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">City:</span>
+                        <span class="airport-value">${escapeHtml(data.destination_airport.municipality || 'N/A')}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">Country:</span>
+                        <span class="airport-value">${escapeHtml(data.destination_airport.iso_country)}</span>
+                    </div>
+                    <div class="airport-detail">
+                        <span class="airport-label">Coordinates:</span>
+                        <span class="airport-value">${data.destination_airport.latitude_deg.toFixed(4)}, ${data.destination_airport.longitude_deg.toFixed(4)}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize or update map
+            initializeMap(data);
+            
+            results.style.display = 'block';
+            
+            // Scroll to results
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize the map with airport markers and route
+        function initializeMap(data) {
+            const mapContainer = document.getElementById('map');
+            
+            // Destroy existing map if it exists
+            if (map) {
+                map.remove();
+                map = null;
+            }
+            
+            // Wait for the results container to be visible and rendered
+            setTimeout(() => {
+                // Create new map with explicit center to avoid initial positioning issues
+                const centerLat = (data.departure_airport.latitude_deg + data.destination_airport.latitude_deg) / 2;
+                const centerLng = (data.departure_airport.longitude_deg + data.destination_airport.longitude_deg) / 2;
+                
+                map = L.map('map', {
+                    center: [centerLat, centerLng],
+                    zoom: 4,
+                    zoomControl: true,
+                    scrollWheelZoom: true
+                });
+                
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Create custom icons for better visibility
+                const departureIcon = L.divIcon({
+                    html: '<div style="background: #ff6b6b; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📍</div>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15],
+                    className: 'custom-departure-icon'
+                });
+                
+                const destinationIcon = L.divIcon({
+                    html: '<div style="background: #4CAF50; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">🎯</div>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15],
+                    className: 'custom-destination-icon'
+                });
+                
+                // Create markers with custom icons
+                const departureMarker = L.marker([data.departure_airport.latitude_deg, data.departure_airport.longitude_deg], {icon: departureIcon})
+                    .bindPopup(`
+                        <div style="min-width: 200px;">
+                            <strong>📍 ${escapeHtml(data.departure_airport.name)}</strong><br><br>
+                            <strong>ICAO:</strong> ${escapeHtml(data.departure_airport.icao_code)}<br>
+                            <strong>IATA:</strong> ${escapeHtml(data.departure_airport.iata_code || 'N/A')}<br>
+                            <strong>City:</strong> ${escapeHtml(data.departure_airport.municipality || 'N/A')}<br>
+                            <strong>Country:</strong> ${escapeHtml(data.departure_airport.iso_country)}<br>
+                            <strong>Coordinates:</strong> ${data.departure_airport.latitude_deg.toFixed(4)}, ${data.departure_airport.longitude_deg.toFixed(4)}
+                        </div>
+                    `, {
+                        maxWidth: 300
+                    });
+                    
+                const destinationMarker = L.marker([data.destination_airport.latitude_deg, data.destination_airport.longitude_deg], {icon: destinationIcon})
+                    .bindPopup(`
+                        <div style="min-width: 200px;">
+                            <strong>🎯 ${escapeHtml(data.destination_airport.name)}</strong><br><br>
+                            <strong>ICAO:</strong> ${escapeHtml(data.destination_airport.icao_code)}<br>
+                            <strong>IATA:</strong> ${escapeHtml(data.destination_airport.iata_code || 'N/A')}<br>
+                            <strong>City:</strong> ${escapeHtml(data.destination_airport.municipality || 'N/A')}<br>
+                            <strong>Country:</strong> ${escapeHtml(data.destination_airport.iso_country)}<br>
+                            <strong>Coordinates:</strong> ${data.destination_airport.latitude_deg.toFixed(4)}, ${data.destination_airport.longitude_deg.toFixed(4)}
+                        </div>
+                    `, {
+                        maxWidth: 300
+                    });
+                
+                // Add markers to map
+                departureMarker.addTo(map);
+                destinationMarker.addTo(map);
+                
+                // Draw line between airports with better styling
+                const line = L.polyline([
+                    [data.departure_airport.latitude_deg, data.departure_airport.longitude_deg],
+                    [data.destination_airport.latitude_deg, data.destination_airport.longitude_deg]
+                ], {
+                    color: '#ff6b6b',
+                    weight: 3,
+                    opacity: 0.8,
+                    dashArray: '10, 5'
+                }).addTo(map);
+                
+                // Add distance label at midpoint
+                const midLat = (data.departure_airport.latitude_deg + data.destination_airport.latitude_deg) / 2;
+                const midLng = (data.departure_airport.longitude_deg + data.destination_airport.longitude_deg) / 2;
+                
+                const distanceLabel = L.divIcon({
+                    html: `<div style="background: rgba(255, 107, 107, 0.9); color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap;">${Math.round(data.distance_nm)} NM</div>`,
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0],
+                    className: 'distance-label'
+                });
+                
+                L.marker([midLat, midLng], {icon: distanceLabel}).addTo(map);
+                
+                // Fit map to show both airports with better padding
+                const group = new L.featureGroup([departureMarker, destinationMarker, line]);
+                map.fitBounds(group.getBounds().pad(0.15));
+                
+                // Force map to invalidate size after a brief delay to fix rendering issues
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+                
+            }, 100);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

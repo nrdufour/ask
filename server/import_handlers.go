@@ -7,7 +7,7 @@ import (
 
 func (s *Server) importStatusHandler(w http.ResponseWriter, r *http.Request) {
 	var tables []ImportStatus
-	
+
 	if s.db != nil {
 		query := `SELECT table_name, last_import_date, git_commit_hash, git_commit_date, record_count 
 				  FROM import_status 

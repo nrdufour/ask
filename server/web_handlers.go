@@ -30,6 +30,25 @@ func (s *Server) airportsPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) distancePageHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the template
+	tmplPath := filepath.Join("templates", "distance.html")
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Set content type to HTML
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	// Execute the template
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (s *Server) indexPageHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the template
 	tmplPath := filepath.Join("templates", "index.html")
@@ -56,7 +75,7 @@ func (s *Server) indexPageHandler(w http.ResponseWriter, r *http.Request) {
 			importStatus = []ImportStatus{}
 		} else {
 			defer rows.Close()
-			
+
 			for rows.Next() {
 				var status ImportStatus
 				err := rows.Scan(&status.TableName, &status.LastImportDate, &status.GitCommitHash, &status.GitCommitDate, &status.RecordCount)

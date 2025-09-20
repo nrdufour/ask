@@ -52,13 +52,24 @@ type CountryListResponse struct {
 }
 
 type ImportStatus struct {
-	TableName        string `json:"table_name"`
-	LastImportDate   string `json:"last_import_date"`
-	GitCommitHash    string `json:"git_commit_hash"`
-	GitCommitDate    string `json:"git_commit_date"`
-	RecordCount      int    `json:"record_count"`
+	TableName      string `json:"table_name"`
+	LastImportDate string `json:"last_import_date"`
+	GitCommitHash  string `json:"git_commit_hash"`
+	GitCommitDate  string `json:"git_commit_date"`
+	RecordCount    int    `json:"record_count"`
 }
 
 type ImportStatusResponse struct {
 	Tables []ImportStatus `json:"tables"`
+}
+
+type DistanceRequest struct {
+	DepartureICAO   string `json:"departure_icao"`
+	DestinationICAO string `json:"destination_icao"`
+}
+
+type DistanceResponse struct {
+	DepartureAirport   Airport `json:"departure_airport"`
+	DestinationAirport Airport `json:"destination_airport"`
+	DistanceNM         float64 `json:"distance_nm"`
 }

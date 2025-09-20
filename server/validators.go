@@ -14,3 +14,9 @@ func isValidCountryCode(code string) bool {
 	matched, _ := regexp.MatchString(`^[a-zA-Z]+$`, code)
 	return matched
 }
+
+// isValidICAOCode validates that the ICAO code is exactly 4 letters
+func isValidICAOCode(code string) bool {
+	matched, _ := regexp.MatchString(`^[a-zA-Z]{4}$`, code)
+	return matched
+}
