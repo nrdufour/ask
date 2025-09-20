@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -45,7 +46,7 @@ func doServe() {
 	srv := server.NewServer(port)
 
 	go func() {
-		if err := srv.Start(); err != nil {
+		if err := srv.Start(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed to start: %v", err)
 		}
 	}()
@@ -58,7 +59,11 @@ func doServe() {
 	defer cancel()
 
 	if err := srv.Stop(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		if err == context.DeadlineExceeded {
+			log.Println("Server shutdown timed out, but exiting gracefully")
+		} else {
+			log.Printf("Server shutdown with error: %v", err)
+		}
 	}
 
 	log.Println("Server exited")

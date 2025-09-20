@@ -18,3 +18,7 @@ primary_region = 'iad'
 
 [[vm]]
   size = 'shared-cpu-1x'
+
+[processes]
+  app = ""
+  restart = "on-failure"
