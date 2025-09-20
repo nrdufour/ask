@@ -26,14 +26,14 @@ func NewServer(port int) *Server {
 		port:   port,
 		router: mux.NewRouter(),
 	}
-	
+
 	// Initialize database connection
 	if err := s.initDatabase(); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	
+
 	s.setupRoutes()
-	
+
 	s.server = &http.Server{
 		Addr:         ":" + strconv.Itoa(port),
 		Handler:      s.router,
@@ -41,7 +41,7 @@ func NewServer(port int) *Server {
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
-	
+
 	return s
 }
 
@@ -49,6 +49,7 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/version", s.versionHandler).Methods("GET")
 	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
 	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
+	s.router.HandleFunc("/api/airport/country", s.countryListHandler).Methods("GET")
 }
 
 func (s *Server) Start() error {
@@ -60,17 +61,17 @@ func (s *Server) initDatabase() error {
 	repoDir := viper.GetString("repository")
 	dbDir := filepath.Join(repoDir, viper.GetString("db"))
 	dbPath := filepath.Join(dbDir, "ask.db")
-	
+
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return err
 	}
-	
+
 	// Test the connection
 	if err := db.Ping(); err != nil {
 		return err
 	}
-	
+
 	s.db = db
 	return nil
 }

@@ -41,13 +41,13 @@ func ImportAirportsCSV(dbPath string) error {
 	defer file.Close()
 
 	reader := csv.NewReader(file)
-	
+
 	// Read header row
 	header, err := reader.Read()
 	if err != nil {
 		return fmt.Errorf("failed to read CSV header: %w", err)
 	}
-	
+
 	fmt.Printf("CSV header: %v\n", header)
 
 	// Clear existing data
@@ -59,7 +59,7 @@ func ImportAirportsCSV(dbPath string) error {
 	// Prepare insert statement
 	placeholders := strings.Repeat("?,", len(header)-1) + "?"
 	insertSQL := fmt.Sprintf("INSERT INTO airports VALUES (%s)", placeholders)
-	
+
 	stmt, err := db.Prepare(insertSQL)
 	if err != nil {
 		return fmt.Errorf("failed to prepare insert statement: %w", err)
@@ -94,7 +94,7 @@ func ImportAirportsCSV(dbPath string) error {
 			tx.Rollback()
 			return fmt.Errorf("failed to insert record: %w", err)
 		}
-		
+
 		recordCount++
 	}
 

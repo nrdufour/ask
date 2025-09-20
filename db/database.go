@@ -33,7 +33,7 @@ func InitializeDatabase() error {
 func createDatabase() (string, error) {
 	repoDir := viper.GetString("repository")
 	dbDir := filepath.Join(repoDir, viper.GetString("db"))
-	
+
 	// Ensure db directory exists
 	err := os.MkdirAll(dbDir, os.ModePerm)
 	if err != nil {
@@ -41,7 +41,7 @@ func createDatabase() (string, error) {
 	}
 
 	dbPath := filepath.Join(dbDir, "ask.db")
-	
+
 	// Remove existing database file to ensure clean recreation
 	if _, err := os.Stat(dbPath); err == nil {
 		err = os.Remove(dbPath)
@@ -49,7 +49,7 @@ func createDatabase() (string, error) {
 			return "", fmt.Errorf("failed to remove existing database: %w", err)
 		}
 	}
-	
+
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open database: %w", err)
