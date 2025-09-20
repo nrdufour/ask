@@ -36,7 +36,7 @@ func NewServer(port int) *Server {
 
 	s.server = &http.Server{
 		Addr:         ":" + strconv.Itoa(port),
-		Handler:      s.router,
+		Handler:      LoggingMiddleware(s.router),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
