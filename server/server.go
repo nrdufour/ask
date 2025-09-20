@@ -2,24 +2,34 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/spf13/viper"
 )
 
 type Server struct {
 	port   int
 	router *mux.Router
 	server *http.Server
+	db     *sql.DB
 }
 
 func NewServer(port int) *Server {
 	s := &Server{
 		port:   port,
 		router: mux.NewRouter(),
+	}
+	
+	// Initialize database connection
+	if err := s.initDatabase(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	
 	s.setupRoutes()
@@ -38,6 +48,7 @@ func NewServer(port int) *Server {
 func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/version", s.versionHandler).Methods("GET")
 	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
+	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
 }
 
 func (s *Server) Start() error {
@@ -45,7 +56,29 @@ func (s *Server) Start() error {
 	return s.server.ListenAndServe()
 }
 
+func (s *Server) initDatabase() error {
+	repoDir := viper.GetString("repository")
+	dbDir := filepath.Join(repoDir, viper.GetString("db"))
+	dbPath := filepath.Join(dbDir, "ask.db")
+	
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return err
+	}
+	
+	// Test the connection
+	if err := db.Ping(); err != nil {
+		return err
+	}
+	
+	s.db = db
+	return nil
+}
+
 func (s *Server) Stop(ctx context.Context) error {
 	log.Println("Stopping server...")
+	if s.db != nil {
+		s.db.Close()
+	}
 	return s.server.Shutdown(ctx)
 }

@@ -4,5 +4,6 @@
     nativeBuildInputs = with pkgs.buildPackages; [
       go
       sqlite
+      jq
     ];
 }
