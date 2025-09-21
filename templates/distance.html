@@ -495,20 +495,25 @@
                 departureMarker.addTo(map);
                 destinationMarker.addTo(map);
                 
-                // Draw line between airports with better styling
-                const line = L.polyline([
-                    [data.departure_airport.latitude_deg, data.departure_airport.longitude_deg],
-                    [data.destination_airport.latitude_deg, data.destination_airport.longitude_deg]
-                ], {
+                // Draw great circle line between airports with better styling
+                const greatCirclePoints = calculateGreatCirclePoints(
+                    data.departure_airport.latitude_deg, 
+                    data.departure_airport.longitude_deg,
+                    data.destination_airport.latitude_deg, 
+                    data.destination_airport.longitude_deg,
+                    100 // Number of intermediate points for smooth curve
+                );
+                
+                const line = L.polyline(greatCirclePoints, {
                     color: '#ff6b6b',
                     weight: 3,
                     opacity: 0.8,
                     dashArray: '10, 5'
                 }).addTo(map);
                 
-                // Add distance label at midpoint
-                const midLat = (data.departure_airport.latitude_deg + data.destination_airport.latitude_deg) / 2;
-                const midLng = (data.departure_airport.longitude_deg + data.destination_airport.longitude_deg) / 2;
+                // Add distance label at great circle midpoint
+                const midpointIndex = Math.floor(greatCirclePoints.length / 2);
+                const [midLat, midLng] = greatCirclePoints[midpointIndex];
                 
                 const distanceLabel = L.divIcon({
                     html: `<div style="background: rgba(255, 107, 107, 0.9); color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap;">${Math.round(data.distance_nm)} NM</div>`,
@@ -529,6 +534,50 @@
                 }, 100);
                 
             }, 100);
+        }
+
+        // Calculate great circle points between two coordinates
+        function calculateGreatCirclePoints(lat1, lng1, lat2, lng2, numPoints = 100) {
+            const points = [];
+            
+            // Convert degrees to radians
+            const phi1 = lat1 * Math.PI / 180;
+            const phi2 = lat2 * Math.PI / 180;
+            const deltaLambda = (lng2 - lng1) * Math.PI / 180;
+            
+            // Calculate angular distance
+            const a = Math.sin((phi2 - phi1) / 2) * Math.sin((phi2 - phi1) / 2) +
+                     Math.cos(phi1) * Math.cos(phi2) *
+                     Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+            const angularDistance = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            
+            // Generate intermediate points
+            for (let i = 0; i <= numPoints; i++) {
+                const f = i / numPoints;
+                
+                if (f === 0) {
+                    points.push([lat1, lng1]);
+                } else if (f === 1) {
+                    points.push([lat2, lng2]);
+                } else {
+                    // Use spherical interpolation for great circle
+                    const A = Math.sin((1 - f) * angularDistance) / Math.sin(angularDistance);
+                    const B = Math.sin(f * angularDistance) / Math.sin(angularDistance);
+                    
+                    const x = A * Math.cos(phi1) * Math.cos(lng1 * Math.PI / 180) +
+                              B * Math.cos(phi2) * Math.cos(lng2 * Math.PI / 180);
+                    const y = A * Math.cos(phi1) * Math.sin(lng1 * Math.PI / 180) +
+                              B * Math.cos(phi2) * Math.sin(lng2 * Math.PI / 180);
+                    const z = A * Math.sin(phi1) + B * Math.sin(phi2);
+                    
+                    const phi = Math.atan2(z, Math.sqrt(x * x + y * y));
+                    const lambda = Math.atan2(y, x);
+                    
+                    points.push([phi * 180 / Math.PI, lambda * 180 / Math.PI]);
+                }
+            }
+            
+            return points;
         }
 
         // Escape HTML to prevent XSS
