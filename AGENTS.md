@@ -1,19 +1,8 @@
-# AGENTS.md
+# Airpot Swiss Knife
 
 ## Project Overview
 
-Main Goal: Surfacing a database of airport related data coming from the site ourairports.com, and especially by storing their csv file first in a sqlite and exposing it via a REST api for later use by other clients.
-
-**Name:** ask  
-**Language:** Go  
-**Type:** CLI Application  
-
-## Architecture & Structure
-
-- **Main entry point:** `main.go` or `cmd/`
-- **Core logic:**: store and serve the airports.csv db as a REST server
-- **Configuration:**: None yet, but will need to be added
-- **Tests:**: none yet
+**ask** (Airport Swiss Knife) is a Go CLI application that provides access to airport and country data from ourairports.com. It downloads, stores, and serves airport data via both CLI commands and a web server with REST API.
 
 ## Development Commands
 
@@ -21,87 +10,107 @@ Main Goal: Surfacing a database of airport related data coming from the site our
 ```bash
 # Build the project
 go build
+# or use the Makefile
+make build
 
-# Run the project
+# Run directly
 go run .
 
-# Run with arguments
-go run . [command] [flags]
+# Run specific commands
+./ask init     # Download data and setup local database
+./ask serve    # Start HTTP server (default port 8080)
+./ask query    # Query airport data
+./ask version  # Show version
 ```
 
-### Testing
-```bash
-# Run all tests
-go test ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Run specific package tests
-go test ./pkg/[package-name]
-```
-
-### Code Quality
+### Code Quality & Testing
 ```bash
 # Format code
 go fmt ./...
 
-# Lint code (if golangci-lint is available)
-golangci-lint run
-
-# Vet code
+# Vet code for issues
 go vet ./...
 
 # Tidy dependencies
 go mod tidy
+
+# Run tests (if any exist)
+go test ./...
 ```
 
-## Dependencies & Modules
+## Architecture
 
-Key dependencies:
-- `github.com/spf13/cobra` - CLI framework
-- `github.com/spf13/viper` - Configuration management
+The application follows a modular structure:
+
+- **`cmd/`** - CLI commands using Cobra framework
+  - `root.go` - Main command setup with global flags and viper config
+  - `init.go` - Data download and database initialization
+  - `serve.go` - HTTP server startup with graceful shutdown
+  - `query.go` - Data querying functionality
+  - `version.go` - Version information
+
+- **`server/`** - HTTP server implementation
+  - `server.go` - Main server setup with Gorilla Mux router
+  - `*_handlers.go` - HTTP handlers for different endpoints
+  - `types.go` - Data structures and response types
+  - `validators.go` - Input validation logic
+  - `distance.go` - Airport distance calculation utilities
+
+- **`db/`** - Database operations
+  - `database.go` - SQLite database creation and schema
+  - `import.go` - CSV data import from ourairports.com
+
+- **`repository/`** - Data management
+  - `setup.go` - Git repository management for data updates
+
+- **`templates/`** - HTML templates for web interface
+  - Provides web UI for airport search and distance calculations
 
 ## Configuration
 
-- Config files location: 
-- Environment variables: 
-- Default settings: 
+The application uses Viper for configuration management:
 
-## Common Tasks
+- **Config file**: `$HOME/.ask.yaml` (optional)
+- **Default repository**: `$HOME/.ask/`
+- **Database location**: `$HOME/.ask/db/ask.db`
+- **Data location**: `$HOME/.ask/data/` (ourairports.com git repo)
 
-### Adding a new command
-1. Create new command file in `cmd/` directory
-2. Implement cobra.Command structure
-3. Add command to root command
-4. Add tests for the command
+Global flags:
+- `--repository, -r` - Override default repository directory
+- `--config` - Specify custom config file
 
-### Adding configuration options
-1. Define config struct
-2. Add viper bindings
-3. Update config file examples
-4. Document new options
+## Data Flow
 
-## Testing Strategy
+1. **Initialization** (`./ask init`):
+   - Creates repository directory structure
+   - Clones/updates ourairports.com data via Git
+   - Creates SQLite database with airports and countries tables
+   - Imports CSV data with import status tracking
 
-- Unit tests for core logic
-- Integration tests for CLI commands
-- Test coverage target: 80%+
+2. **Server Mode** (`./ask serve`):
+   - Starts HTTP server with both API and web endpoints
+   - API endpoints: `/api/airport/search`, `/api/airport/distance`, `/api/country`
+   - Web interface: `/`, `/airports`, `/distance`
+   - Graceful shutdown with SIGINT/SIGTERM handling
 
-## Deployment
+## Database Schema
 
-- Build artifacts: 
-- Release process: 
-- Distribution: 
+- **airports** - Main airport data with coordinates, codes, and metadata
+- **countries** - Country information with codes and names
+- **import_status** - Tracks data import metadata including git commit info
 
-## Notes
+## Key Dependencies
 
-- Follow Go conventions and idioms
-- Use structured logging where applicable
-- Ensure proper error handling
-- Document public APIs
+- `github.com/spf13/cobra` - CLI framework
+- `github.com/spf13/viper` - Configuration management
+- `github.com/gorilla/mux` - HTTP router
+- `github.com/mattn/go-sqlite3` - SQLite database driver
+- `github.com/go-git/go-git/v5` - Git operations for data updates
 
-## Troubleshooting
+## Development Notes
 
-Common issues and solutions:
-  
+- SQLite database is recreated on each `init` to ensure clean state
+- Server includes request logging middleware
+- Distance calculations use geographical coordinates
+- Data is automatically updated from ourairports.com git repository
+- Web interface provides user-friendly access to API functionality
