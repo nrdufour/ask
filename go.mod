@@ -2,7 +2,7 @@ module ask
 
 go 1.23.0
 
-toolchain go1.25.1
+toolchain go1.25.2
 
 require (
 	github.com/go-git/go-git/v5 v5.16.3
