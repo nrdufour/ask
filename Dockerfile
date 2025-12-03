@@ -7,7 +7,7 @@ COPY . .
 RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags="-linkmode external -extldflags '-static' -s -w" -o ask
 
 # -----------------------------------------------------------------------------
-FROM alpine:3.22
+FROM alpine:3.23
 RUN apk --no-cache add ca-certificates tzdata && \
     addgroup -g 1000 appgroup && \
     adduser -u 1000 -G appgroup -s /bin/sh -D appuser
