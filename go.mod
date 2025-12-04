@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.16.4
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.32
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 )
 
