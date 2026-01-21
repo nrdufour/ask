@@ -1,37 +1,8 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-
-  "extends": [
-    'config:recommended',
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'local>nemo/renovate-config',
     'docker:enableMajor',
     'replacements:k8s-registry-move',
-    ':automergeBranch',
-    ':disableRateLimiting',
-    ':dependencyDashboard',
-    ':semanticCommits',
-    ':skipStatusChecks',
-    ':timezone(America/New_York)',
-  ],
-
-  packageRules: [
-    {
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
-      matchCurrentVersion: '!/^0/',
-      automerge: true,
-    },
-    {
-      "description": "Update renovate only daily",
-      "extends": ["schedule:daily"],
-      "matchDepNames": ["ghcr.io/renovatebot/renovate"]
-    },
-    // Do not go further than v4 as it cant work on the current runners
-    {
-      "matchPackageNames": ["actions/checkout"],
-      "allowedVersions": "<5.0.0",
-      "automerge": false
-    },
   ],
 }
