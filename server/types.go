@@ -1,6 +1,6 @@
 package server
 
-const VERSION = "v0.1"
+const VERSION = "v0.2"
 
 type VersionResponse struct {
 	Version string `json:"version"`
@@ -61,6 +61,14 @@ type ImportStatus struct {
 
 type ImportStatusResponse struct {
 	Tables []ImportStatus `json:"tables"`
+}
+
+type AirportTimeResponse struct {
+	ICAO      string `json:"icao"`
+	Name      string `json:"name"`
+	Timezone  string `json:"timezone"`
+	LocalTime string `json:"local_time"`
+	UTCOffset string `json:"utc_offset"`
 }
 
 type DistanceRequest struct {
