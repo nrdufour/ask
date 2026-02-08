@@ -1,6 +1,6 @@
 package server
 
-const VERSION = "v0.2"
+const VERSION = "v0.2.1"
 
 type VersionResponse struct {
 	Version string `json:"version"`

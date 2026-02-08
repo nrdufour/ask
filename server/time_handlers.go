@@ -7,13 +7,20 @@ import (
 	"time"
 
 	"github.com/ringsaturn/tzf"
+	pb "github.com/ringsaturn/tzf/gen/go/tzf/v1"
+	tzfrellite "github.com/ringsaturn/tzf-rel-lite"
+	"google.golang.org/protobuf/proto"
 )
 
 var finder tzf.F
 
 func init() {
+	input := &pb.PreindexTimezones{}
+	if err := proto.Unmarshal(tzfrellite.PreindexData, input); err != nil {
+		panic("failed to unmarshal preindex data: " + err.Error())
+	}
 	var err error
-	finder, err = tzf.NewDefaultFinder()
+	finder, err = tzf.NewFuzzyFinderFromPB(input)
 	if err != nil {
 		panic("failed to initialize timezone finder: " + err.Error())
 	}
