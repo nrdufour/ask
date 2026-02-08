@@ -15,12 +15,12 @@ import (
 var finder tzf.F
 
 func init() {
-	input := &pb.PreindexTimezones{}
-	if err := proto.Unmarshal(tzfrellite.PreindexData, input); err != nil {
-		panic("failed to unmarshal preindex data: " + err.Error())
+	input := &pb.CompressedTimezones{}
+	if err := proto.Unmarshal(tzfrellite.LiteCompressData, input); err != nil {
+		panic("failed to unmarshal compressed timezone data: " + err.Error())
 	}
 	var err error
-	finder, err = tzf.NewFuzzyFinderFromPB(input)
+	finder, err = tzf.NewFinderFromCompressed(input)
 	if err != nil {
 		panic("failed to initialize timezone finder: " + err.Error())
 	}
