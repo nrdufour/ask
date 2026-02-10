@@ -7,7 +7,7 @@ toolchain go1.25.7
 require (
 	github.com/go-git/go-git/v5 v5.16.5
 	github.com/gorilla/mux v1.8.1
-	github.com/mattn/go-sqlite3 v1.14.33
+	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/ringsaturn/tzf v1.0.3
 	github.com/ringsaturn/tzf-rel-lite v0.0.2025-c
 	github.com/spf13/cobra v1.10.2
