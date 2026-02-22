@@ -33,6 +33,13 @@ func (s *Server) reachableHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	typesStr := r.URL.Query().Get("type")
+	types, validTypes := parseAirportTypes(typesStr)
+	if !validTypes {
+		http.Error(w, "Invalid airport type - valid types are: large_airport, medium_airport, small_airport, heliport, seaplane_base, closed, balloonport", http.StatusBadRequest)
+		return
+	}
+
 	origin, err := s.getAirportByICAO(icao)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -43,7 +50,7 @@ func (s *Server) reachableHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	airports, err := s.getAirportsInRange(origin, rangeNM)
+	airports, err := s.getAirportsInRange(origin, rangeNM, types)
 	if err != nil {
 		http.Error(w, "Error querying reachable airports", http.StatusInternalServerError)
 		return

@@ -135,6 +135,38 @@
             transform: none;
             box-shadow: none;
         }
+        .type-filters {
+            margin-bottom: 20px;
+        }
+        .type-filters label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .type-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .type-chip {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            user-select: none;
+        }
+        .type-chip:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .type-chip.active {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
         .loading {
             display: none;
             color: #ff6b6b;
@@ -278,6 +310,18 @@
                         <button type="submit" id="searchButton">Search</button>
                     </div>
                 </div>
+                <div class="type-filters">
+                    <label>Airport Types:</label>
+                    <div class="type-chips" id="typeChips">
+                        <span class="type-chip active" data-type="large_airport">Large</span>
+                        <span class="type-chip active" data-type="medium_airport">Medium</span>
+                        <span class="type-chip" data-type="small_airport">Small</span>
+                        <span class="type-chip" data-type="heliport">Heliport</span>
+                        <span class="type-chip" data-type="seaplane_base">Seaplane Base</span>
+                        <span class="type-chip" data-type="closed">Closed</span>
+                        <span class="type-chip" data-type="balloonport">Balloonport</span>
+                    </div>
+                </div>
                 <div class="loading" id="loading">Searching for reachable airports...</div>
                 <div class="error" id="error"></div>
             </form>
@@ -303,6 +347,20 @@
         document.getElementById('icao').addEventListener('input', function(e) {
             e.target.value = e.target.value.toUpperCase();
         });
+
+        document.querySelectorAll('.type-chip').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                chip.classList.toggle('active');
+            });
+        });
+
+        function getSelectedTypes() {
+            var selected = [];
+            document.querySelectorAll('.type-chip.active').forEach(function(chip) {
+                selected.push(chip.getAttribute('data-type'));
+            });
+            return selected;
+        }
 
         document.getElementById('reachableForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -339,7 +397,11 @@
             results.style.display = 'none';
 
             try {
-                const apiUrl = `/api/airport/reachable?icao=${encodeURIComponent(icao)}&range=${encodeURIComponent(range)}`;
+                var apiUrl = `/api/airport/reachable?icao=${encodeURIComponent(icao)}&range=${encodeURIComponent(range)}`;
+                const selectedTypes = getSelectedTypes();
+                if (selectedTypes.length > 0) {
+                    apiUrl += '&type=' + encodeURIComponent(selectedTypes.join(','));
+                }
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -362,9 +424,13 @@
             const results = document.getElementById('results');
             const summary = document.getElementById('summary');
 
+            var selectedTypes = getSelectedTypes();
+            var filterText = selectedTypes.length > 0
+                ? ' (filtered: ' + selectedTypes.map(function(t) { return t.replace('_', ' '); }).join(', ') + ')'
+                : ' (all types)';
             summary.innerHTML = 'Found <strong>' + data.count + '</strong> airports within <strong>' +
                 data.range_nm + ' NM</strong> of <strong>' + escapeHtml(data.origin_airport.icao_code) +
-                '</strong> (' + escapeHtml(data.origin_airport.name) + ')';
+                '</strong> (' + escapeHtml(data.origin_airport.name) + ')' + filterText;
 
             buildSidebar(data);
             initializeMap(data);

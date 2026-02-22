@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"math"
 	"sort"
+	"strings"
 )
 
 const (
@@ -100,8 +101,9 @@ func (s *Server) getAirportByICAO(icao string) (*Airport, error) {
 	return &airport, nil
 }
 
-// getAirportsInRange finds all airports within rangeNM nautical miles of the origin airport
-func (s *Server) getAirportsInRange(origin *Airport, rangeNM float64) ([]ReachableAirport, error) {
+// getAirportsInRange finds all airports within rangeNM nautical miles of the origin airport.
+// If types is non-empty, only airports matching those types are returned.
+func (s *Server) getAirportsInRange(origin *Airport, rangeNM float64, types []string) ([]ReachableAirport, error) {
 	// Compute bounding box: 1 deg lat ~ 60 NM, 1 deg lon ~ 60*cos(lat) NM
 	latDelta := rangeNM / 60.0
 	cosLat := math.Cos(origin.LatitudeDeg * math.Pi / 180)
@@ -143,6 +145,15 @@ func (s *Server) getAirportsInRange(origin *Airport, rangeNM float64) ([]Reachab
 	} else {
 		query = selectCols + " AND longitude_deg BETWEEN ? AND ?"
 		args = []interface{}{minLat, maxLat, minLon, maxLon}
+	}
+
+	if len(types) > 0 {
+		placeholders := strings.Repeat("?,", len(types))
+		placeholders = placeholders[:len(placeholders)-1] // trim trailing comma
+		query += " AND type IN (" + placeholders + ")"
+		for _, t := range types {
+			args = append(args, t)
+		}
 	}
 
 	rows, err := s.db.Query(query, args...)

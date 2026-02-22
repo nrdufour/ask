@@ -3,7 +3,44 @@ package server
 import (
 	"regexp"
 	"strconv"
+	"strings"
 )
+
+var validAirportTypes = map[string]bool{
+	"large_airport":  true,
+	"medium_airport": true,
+	"small_airport":  true,
+	"heliport":       true,
+	"seaplane_base":  true,
+	"closed":         true,
+	"balloonport":    true,
+}
+
+// isValidAirportType checks if the given type string is a known airport type
+func isValidAirportType(t string) bool {
+	return validAirportTypes[t]
+}
+
+// parseAirportTypes splits a comma-separated type string, trims whitespace,
+// validates each type, and returns the list. Returns false if any type is invalid.
+func parseAirportTypes(typesStr string) ([]string, bool) {
+	if typesStr == "" {
+		return nil, true
+	}
+	parts := strings.Split(typesStr, ",")
+	types := make([]string, 0, len(parts))
+	for _, p := range parts {
+		t := strings.TrimSpace(p)
+		if t == "" {
+			continue
+		}
+		if !isValidAirportType(t) {
+			return nil, false
+		}
+		types = append(types, t)
+	}
+	return types, true
+}
 
 // isValidSearchParameter validates that the search parameter contains only allowed characters
 func isValidSearchParameter(param string) bool {
