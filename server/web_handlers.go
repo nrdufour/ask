@@ -49,6 +49,22 @@ func (s *Server) distancePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) reachablePageHandler(w http.ResponseWriter, r *http.Request) {
+	tmplPath := filepath.Join("templates", "reachable.html")
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (s *Server) indexPageHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the template
 	tmplPath := filepath.Join("templates", "index.html")

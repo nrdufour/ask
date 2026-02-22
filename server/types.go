@@ -81,3 +81,15 @@ type DistanceResponse struct {
 	DestinationAirport Airport `json:"destination_airport"`
 	DistanceNM         float64 `json:"distance_nm"`
 }
+
+type ReachableAirport struct {
+	Airport    Airport `json:"airport"`
+	DistanceNM float64 `json:"distance_nm"`
+}
+
+type ReachableResponse struct {
+	OriginAirport Airport            `json:"origin_airport"`
+	RangeNM       float64            `json:"range_nm"`
+	Airports      []ReachableAirport `json:"airports"`
+	Count         int                `json:"count"`
+}

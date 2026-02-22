@@ -52,6 +52,7 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
 	s.router.HandleFunc("/api/airport/distance", s.distanceHandler).Methods("GET")
 	s.router.HandleFunc("/api/airport/time", s.airportTimeHandler).Methods("GET")
+	s.router.HandleFunc("/api/airport/reachable", s.reachableHandler).Methods("GET")
 	s.router.HandleFunc("/api/country", s.countryListHandler).Methods("GET")
 	s.router.HandleFunc("/api/import/status", s.importStatusHandler).Methods("GET")
 
@@ -59,6 +60,7 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/", s.indexPageHandler).Methods("GET")
 	s.router.HandleFunc("/airports", s.airportsPageHandler).Methods("GET")
 	s.router.HandleFunc("/distance", s.distancePageHandler).Methods("GET")
+	s.router.HandleFunc("/reachable", s.reachablePageHandler).Methods("GET")
 }
 
 func (s *Server) Start() error {

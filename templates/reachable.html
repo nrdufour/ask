@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reachable Airports</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .home-link {
+            display: inline-block;
+            color: #ff6b6b;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .home-link:hover {
+            color: #ff5252;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .form-inputs {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            flex: 0 0 auto;
+        }
+        .form-submit {
+            flex: 0 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+        }
+        input[type="text"],
+        input[type="number"] {
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        input[type="text"] {
+            width: 140px;
+            text-transform: uppercase;
+        }
+        input[type="number"] {
+            width: 160px;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: none;
+        }
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        button:disabled {
+            background: rgba(108, 117, 125, 0.6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .loading {
+            display: none;
+            color: #ff6b6b;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        .error {
+            color: #ffb3b3;
+            margin-top: 10px;
+            display: none;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+        .results {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: none;
+            flex: 1;
+        }
+        .summary {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .summary strong {
+            color: #ff6b6b;
+        }
+        .map-sidebar {
+            display: flex;
+            gap: 20px;
+            height: 550px;
+        }
+        #map {
+            flex: 1;
+            border-radius: 10px;
+            min-height: 400px;
+        }
+        .sidebar {
+            width: 350px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .sidebar h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #ff6b6b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 10px;
+        }
+        .sidebar-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 107, 107, 0.4);
+        }
+        .sidebar-item .name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-item .codes {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-family: monospace;
+        }
+        .sidebar-item .dist {
+            font-size: 0.85rem;
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .main-content {
+                padding: 25px 20px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .form-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            input[type="text"],
+            input[type="number"] {
+                width: 100%;
+            }
+            .map-sidebar {
+                flex-direction: column;
+                height: auto;
+            }
+            #map {
+                height: 350px;
+            }
+            .sidebar {
+                width: auto;
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <a href="/" class="home-link">&larr; Back to Home</a>
+            <h1>Reachable Airports</h1>
+
+            <form id="reachableForm">
+                <div class="form-inputs">
+                    <div class="form-group">
+                        <label for="icao">Origin Airport (ICAO):</label>
+                        <input type="text" id="icao" name="icao" placeholder="e.g., LFPG" maxlength="4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="range">Range (NM):</label>
+                        <input type="number" id="range" name="range" placeholder="e.g., 500" min="1" max="10800" required>
+                    </div>
+                    <div class="form-submit">
+                        <button type="submit" id="searchButton">Search</button>
+                    </div>
+                </div>
+                <div class="loading" id="loading">Searching for reachable airports...</div>
+                <div class="error" id="error"></div>
+            </form>
+        </div>
+
+        <div class="results" id="results">
+            <div class="summary" id="summary"></div>
+            <div class="map-sidebar">
+                <div id="map"></div>
+                <div class="sidebar" id="sidebar">
+                    <h3>Reachable Airports</h3>
+                    <div id="airportList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map = null;
+        let markers = [];
+
+        document.getElementById('icao').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        document.getElementById('reachableForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const icao = document.getElementById('icao').value.trim();
+            const range = document.getElementById('range').value.trim();
+            const searchButton = document.getElementById('searchButton');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+
+            if (!icao || !range) {
+                error.textContent = 'Please enter both an ICAO code and a range';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (icao.length !== 4) {
+                error.textContent = 'ICAO code must be exactly 4 characters';
+                error.style.display = 'block';
+                return;
+            }
+
+            const rangeNum = parseFloat(range);
+            if (isNaN(rangeNum) || rangeNum <= 0 || rangeNum > 10800) {
+                error.textContent = 'Range must be between 1 and 10800 NM';
+                error.style.display = 'block';
+                return;
+            }
+
+            searchButton.disabled = true;
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.style.display = 'none';
+
+            try {
+                const apiUrl = `/api/airport/reachable?icao=${encodeURIComponent(icao)}&range=${encodeURIComponent(range)}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Search failed');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (err) {
+                console.error('Error:', err);
+                error.textContent = err.message || 'Error searching for airports. Please try again.';
+                error.style.display = 'block';
+            } finally {
+                searchButton.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const summary = document.getElementById('summary');
+
+            summary.innerHTML = 'Found <strong>' + data.count + '</strong> airports within <strong>' +
+                data.range_nm + ' NM</strong> of <strong>' + escapeHtml(data.origin_airport.icao_code) +
+                '</strong> (' + escapeHtml(data.origin_airport.name) + ')';
+
+            buildSidebar(data);
+            initializeMap(data);
+
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function buildSidebar(data) {
+            const list = document.getElementById('airportList');
+            list.innerHTML = '';
+
+            if (data.airports === null || data.airports.length === 0) {
+                list.innerHTML = '<p style="opacity:0.7;text-align:center;">No airports found in range.</p>';
+                return;
+            }
+
+            data.airports.forEach(function(item, idx) {
+                const ap = item.airport;
+                const div = document.createElement('div');
+                div.className = 'sidebar-item';
+                div.innerHTML =
+                    '<div class="name">' + escapeHtml(ap.name) + '</div>' +
+                    '<div class="codes">' + escapeHtml(ap.icao_code || '-') + ' / ' + escapeHtml(ap.iata_code || '-') +
+                    (ap.municipality ? ' &middot; ' + escapeHtml(ap.municipality) : '') + '</div>' +
+                    '<div class="dist">' + item.distance_nm + ' NM</div>';
+                div.addEventListener('click', function() {
+                    panToMarker(idx);
+                });
+                list.appendChild(div);
+            });
+        }
+
+        function panToMarker(idx) {
+            if (markers[idx]) {
+                map.setView(markers[idx].getLatLng(), Math.max(map.getZoom(), 8));
+                markers[idx].openPopup();
+            }
+        }
+
+        function initializeMap(data) {
+            const mapContainer = document.getElementById('map');
+
+            if (map) {
+                map.remove();
+                map = null;
+            }
+            markers = [];
+
+            setTimeout(function() {
+                map = L.map('map', {
+                    center: [data.origin_airport.latitude_deg, data.origin_airport.longitude_deg],
+                    zoom: 6,
+                    zoomControl: true,
+                    scrollWheelZoom: true
+                });
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+
+                // Range circle (NM to meters: 1 NM = 1852 m)
+                L.circle([data.origin_airport.latitude_deg, data.origin_airport.longitude_deg], {
+                    radius: data.range_nm * 1852,
+                    color: '#ff6b6b',
+                    weight: 2,
+                    dashArray: '8, 6',
+                    fillColor: '#ff6b6b',
+                    fillOpacity: 0.06,
+                    interactive: false
+                }).addTo(map);
+
+                // Origin marker
+                var originIcon = L.divIcon({
+                    html: '<div style="background:#ff6b6b;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:14px;">O</div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    className: ''
+                });
+
+                L.marker([data.origin_airport.latitude_deg, data.origin_airport.longitude_deg], { icon: originIcon })
+                    .bindPopup(
+                        '<div style="min-width:180px;">' +
+                        '<strong>' + escapeHtml(data.origin_airport.name) + '</strong><br><br>' +
+                        '<strong>ICAO:</strong> ' + escapeHtml(data.origin_airport.icao_code) + '<br>' +
+                        '<strong>IATA:</strong> ' + escapeHtml(data.origin_airport.iata_code || 'N/A') + '<br>' +
+                        '<strong>City:</strong> ' + escapeHtml(data.origin_airport.municipality || 'N/A') + '<br>' +
+                        '<strong>Country:</strong> ' + escapeHtml(data.origin_airport.iso_country) +
+                        '</div>', { maxWidth: 300 })
+                    .addTo(map);
+
+                // Reachable markers
+                if (data.airports) {
+                    data.airports.forEach(function(item, idx) {
+                        var ap = item.airport;
+                        var marker = L.circleMarker([ap.latitude_deg, ap.longitude_deg], {
+                            radius: 6,
+                            fillColor: '#4CAF50',
+                            color: '#fff',
+                            weight: 1.5,
+                            fillOpacity: 0.85
+                        }).bindPopup(
+                            '<div style="min-width:180px;">' +
+                            '<strong>' + escapeHtml(ap.name) + '</strong><br><br>' +
+                            '<strong>ICAO:</strong> ' + escapeHtml(ap.icao_code || 'N/A') + '<br>' +
+                            '<strong>IATA:</strong> ' + escapeHtml(ap.iata_code || 'N/A') + '<br>' +
+                            '<strong>City:</strong> ' + escapeHtml(ap.municipality || 'N/A') + '<br>' +
+                            '<strong>Country:</strong> ' + escapeHtml(ap.iso_country) + '<br>' +
+                            '<strong>Distance:</strong> ' + item.distance_nm + ' NM' +
+                            '</div>', { maxWidth: 300 }
+                        ).addTo(map);
+                        markers.push(marker);
+                    });
+                }
+
+                // Fit map to range circle bounds
+                var latDelta = data.range_nm / 60;
+                var cosLat = Math.cos(data.origin_airport.latitude_deg * Math.PI / 180);
+                var lonDelta = data.range_nm / (60 * Math.max(cosLat, 0.01));
+                map.fitBounds([
+                    [data.origin_airport.latitude_deg - latDelta, data.origin_airport.longitude_deg - lonDelta],
+                    [data.origin_airport.latitude_deg + latDelta, data.origin_airport.longitude_deg + lonDelta]
+                ], { padding: [30, 30] });
+
+                setTimeout(function() { map.invalidateSize(); }, 100);
+            }, 100);
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
