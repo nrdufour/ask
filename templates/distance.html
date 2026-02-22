@@ -3,586 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Airport Distance Calculator</title>
+    <title>Distance Calculator &mdash; ASK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/theme.css">
+    <script>(function(){var t=localStorage.getItem('ask-theme')||'system';var r=t==='system'?(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',r)})();</script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px;
-            min-height: 100vh;
-        }
-        .main-content {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        h1 {
-            color: white;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            font-weight: 300;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        .home-link {
-            display: inline-block;
-            color: #ff6b6b;
-            text-decoration: none;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .home-link:hover {
-            color: #ff5252;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .form-inputs {
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-        .form-submit {
-            text-align: center;
-            margin-top: 10px;
-        }
-        label {
-            display: block;
+        .form-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: white;
-            font-size: 1.1rem;
         }
-        input[type="text"] {
-            width: 100%;
-            max-width: 300px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
+        .form-group input[type="text"] {
+            width: 200px;
             text-transform: uppercase;
-            box-sizing: border-box;
         }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #ff6b6b;
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
-        }
-        input[type="text"]::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: none;
-        }
-        button {
-            background: #ff6b6b;
-            color: white;
-            padding: 15px 35px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        button:hover {
-            background: #ff5252;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        }
-        button:disabled {
-            background: rgba(108, 117, 125, 0.6);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .loading {
+
+        .results-section {
             display: none;
-            color: #ff6b6b;
-            font-style: italic;
-            margin-top: 10px;
+            margin-top: 24px;
         }
-        .error {
-            color: #ffb3b3;
-            margin-top: 10px;
-            display: none;
-            background: rgba(255, 107, 107, 0.2);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 107, 107, 0.4);
-        }
-        .results {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            display: none;
-        }
-        .results h2 {
-            color: white;
-            margin-bottom: 20px;
-            font-size: 2rem;
-            font-weight: 400;
+
+        .distance-banner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
             text-align: center;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        .distance-result {
-            text-align: center;
-            background: rgba(255, 107, 107, 0.2);
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 107, 107, 0.4);
+        .distance-banner .label {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
         }
         .distance-value {
-            font-size: 3rem;
-            font-weight: 600;
-            color: #ff6b6b;
-            margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.03em;
+            font-family: 'JetBrains Mono', monospace;
         }
         .distance-unit {
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 4px;
         }
-        .airport-info {
+
+        .airport-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 16px;
+            margin-bottom: 16px;
         }
         .airport-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         .airport-card h3 {
-            color: #ff6b6b;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--accent);
+            margin: 0 0 12px;
         }
         .airport-detail {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+            padding: 4px 0;
+            font-size: 0.8125rem;
         }
-        .airport-label {
-            font-weight: 600;
-            opacity: 0.9;
-        }
+        .airport-label { color: var(--text-secondary); font-weight: 500; }
         .airport-value {
-            opacity: 0.8;
-            font-family: monospace;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
         }
-        #map {
-            height: 400px;
-            border-radius: 10px;
-            margin-top: 20px;
+
+        .map-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        
+        #map { height: 400px; }
+
         @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            .main-content {
-                padding: 25px 20px;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            input[type="text"] {
-                max-width: 100%;
-            }
-            .airport-info {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            .distance-value {
-                font-size: 2.5rem;
-            }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .form-group input[type="text"] { width: 100%; }
+            .airport-grid { grid-template-columns: 1fr; }
+            .distance-value { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <a href="/" class="topbar-brand"><span class="topbar-logo">ASK</span><span class="topbar-title">Airport Swiss Knife</span></a>
+        <div class="theme-switcher">
+            <button class="theme-btn" data-theme="light" title="Light theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+            <button class="theme-btn" data-theme="system" title="System theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+            <button class="theme-btn" data-theme="dark" title="Dark theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="main-content">
-            <a href="/" class="home-link">← Back to Home</a>
-            <h1>📏 Airport Distance Calculator</h1>
-            
+        <div class="page-header">
+            <a href="/" class="back-link">&larr; Back to Home</a>
+            <h1>Distance Calculator</h1>
+        </div>
+
+        <div class="card">
             <form id="distanceForm">
-                <div class="form-inputs">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="departure">Departure Airport (ICAO):</label>
+                        <label for="departure">Departure (ICAO)</label>
                         <input type="text" id="departure" name="departure" placeholder="e.g., KJFK" maxlength="4" required>
                     </div>
                     <div class="form-group">
-                        <label for="destination">Destination Airport (ICAO):</label>
+                        <label for="destination">Destination (ICAO)</label>
                         <input type="text" id="destination" name="destination" placeholder="e.g., EGLL" maxlength="4" required>
                     </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" id="calculateButton">Calculate</button>
+                    </div>
                 </div>
-                <div class="form-submit">
-                    <button type="submit" id="calculateButton">Calculate Distance</button>
-                    <div class="loading" id="loading">Calculating distance...</div>
-                    <div class="error" id="error"></div>
-                </div>
+                <div class="loading-msg" id="loading">Calculating distance...</div>
+                <div class="error-msg" id="error"></div>
             </form>
         </div>
-        
-        <div class="results" id="results">
-            <h2>Distance Calculation Result</h2>
-            
-            <div class="distance-result">
-                <div>Distance between airports</div>
-                <div class="distance-value" id="distanceValue">0</div>
-                <div class="distance-unit">nautical miles</div>
+
+        <div class="results-section" id="results">
+            <div class="distance-banner">
+                <div class="label">Distance between airports</div>
+                <span class="distance-value" id="distanceValue">0</span><span class="distance-unit">NM</span>
             </div>
-            
-            <div class="airport-info" id="airportInfo">
-                <!-- Airport cards will be populated by JavaScript -->
+
+            <div class="airport-grid" id="airportInfo"></div>
+
+            <div class="map-card">
+                <div id="map"></div>
             </div>
-            
-            <div id="map"></div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/theme.js"></script>
     <script>
         let map = null;
 
-        // Format input to uppercase as user types
         document.getElementById('departure').addEventListener('input', function(e) {
             e.target.value = e.target.value.toUpperCase();
         });
-
         document.getElementById('destination').addEventListener('input', function(e) {
             e.target.value = e.target.value.toUpperCase();
         });
 
-        // Handle form submission
         document.getElementById('distanceForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const departure = document.getElementById('departure').value.trim();
             const destination = document.getElementById('destination').value.trim();
             const calculateButton = document.getElementById('calculateButton');
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const results = document.getElementById('results');
-            
-            // Validation
+
             if (!departure || !destination) {
                 error.textContent = 'Please enter both departure and destination ICAO codes';
                 error.style.display = 'block';
                 return;
             }
-            
             if (departure.length !== 4 || destination.length !== 4) {
                 error.textContent = 'ICAO codes must be exactly 4 characters long';
                 error.style.display = 'block';
                 return;
             }
-            
             if (departure === destination) {
                 error.textContent = 'Departure and destination airports cannot be the same';
                 error.style.display = 'block';
                 return;
             }
-            
-            // Show loading state
+
             calculateButton.disabled = true;
             loading.style.display = 'block';
             error.style.display = 'none';
             results.style.display = 'none';
-            
+
             try {
                 const apiUrl = `/api/airport/distance?departure=${encodeURIComponent(departure)}&destination=${encodeURIComponent(destination)}`;
-                
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(errorText || 'Distance calculation failed');
                 }
-                
                 const data = await response.json();
                 displayResults(data);
-                
             } catch (err) {
                 console.error('Error calculating distance:', err);
                 error.textContent = err.message || 'Error calculating distance. Please try again.';
                 error.style.display = 'block';
             } finally {
-                // Hide loading state
                 calculateButton.disabled = false;
                 loading.style.display = 'none';
             }
         });
 
-        // Display calculation results
         function displayResults(data) {
             const results = document.getElementById('results');
-            const distanceValue = document.getElementById('distanceValue');
-            const airportInfo = document.getElementById('airportInfo');
-            
-            // Update distance
-            distanceValue.textContent = Math.round(data.distance_nm);
-            
-            // Create airport cards
-            airportInfo.innerHTML = `
-                <div class="airport-card">
-                    <h3>📍 Departure</h3>
-                    <div class="airport-detail">
-                        <span class="airport-label">Name:</span>
-                        <span class="airport-value">${escapeHtml(data.departure_airport.name)}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">ICAO:</span>
-                        <span class="airport-value">${escapeHtml(data.departure_airport.icao_code)}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">IATA:</span>
-                        <span class="airport-value">${escapeHtml(data.departure_airport.iata_code || 'N/A')}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">City:</span>
-                        <span class="airport-value">${escapeHtml(data.departure_airport.municipality || 'N/A')}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">Country:</span>
-                        <span class="airport-value">${escapeHtml(data.departure_airport.iso_country)}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">Coordinates:</span>
-                        <span class="airport-value">${data.departure_airport.latitude_deg.toFixed(4)}, ${data.departure_airport.longitude_deg.toFixed(4)}</span>
-                    </div>
-                </div>
-                <div class="airport-card">
-                    <h3>🎯 Destination</h3>
-                    <div class="airport-detail">
-                        <span class="airport-label">Name:</span>
-                        <span class="airport-value">${escapeHtml(data.destination_airport.name)}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">ICAO:</span>
-                        <span class="airport-value">${escapeHtml(data.destination_airport.icao_code)}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">IATA:</span>
-                        <span class="airport-value">${escapeHtml(data.destination_airport.iata_code || 'N/A')}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">City:</span>
-                        <span class="airport-value">${escapeHtml(data.destination_airport.municipality || 'N/A')}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">Country:</span>
-                        <span class="airport-value">${escapeHtml(data.destination_airport.iso_country)}</span>
-                    </div>
-                    <div class="airport-detail">
-                        <span class="airport-label">Coordinates:</span>
-                        <span class="airport-value">${data.destination_airport.latitude_deg.toFixed(4)}, ${data.destination_airport.longitude_deg.toFixed(4)}</span>
-                    </div>
-                </div>
-            `;
-            
-            // Initialize or update map
+            document.getElementById('distanceValue').textContent = Math.round(data.distance_nm);
+
+            document.getElementById('airportInfo').innerHTML =
+                '<div class="airport-card">' +
+                    '<h3>Departure</h3>' +
+                    '<div class="airport-detail"><span class="airport-label">Name</span><span class="airport-value">' + escapeHtml(data.departure_airport.name) + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">ICAO</span><span class="airport-value">' + escapeHtml(data.departure_airport.icao_code) + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">IATA</span><span class="airport-value">' + escapeHtml(data.departure_airport.iata_code || 'N/A') + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">City</span><span class="airport-value">' + escapeHtml(data.departure_airport.municipality || 'N/A') + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">Country</span><span class="airport-value">' + escapeHtml(data.departure_airport.iso_country) + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">Coordinates</span><span class="airport-value">' + data.departure_airport.latitude_deg.toFixed(4) + ', ' + data.departure_airport.longitude_deg.toFixed(4) + '</span></div>' +
+                '</div>' +
+                '<div class="airport-card">' +
+                    '<h3>Destination</h3>' +
+                    '<div class="airport-detail"><span class="airport-label">Name</span><span class="airport-value">' + escapeHtml(data.destination_airport.name) + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">ICAO</span><span class="airport-value">' + escapeHtml(data.destination_airport.icao_code) + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">IATA</span><span class="airport-value">' + escapeHtml(data.destination_airport.iata_code || 'N/A') + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">City</span><span class="airport-value">' + escapeHtml(data.destination_airport.municipality || 'N/A') + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">Country</span><span class="airport-value">' + escapeHtml(data.destination_airport.iso_country) + '</span></div>' +
+                    '<div class="airport-detail"><span class="airport-label">Coordinates</span><span class="airport-value">' + data.destination_airport.latitude_deg.toFixed(4) + ', ' + data.destination_airport.longitude_deg.toFixed(4) + '</span></div>' +
+                '</div>';
+
             initializeMap(data);
-            
             results.style.display = 'block';
-            
-            // Scroll to results
             results.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Initialize the map with airport markers and route
         function initializeMap(data) {
-            const mapContainer = document.getElementById('map');
-            
-            // Destroy existing map if it exists
-            if (map) {
-                map.remove();
-                map = null;
-            }
-            
-            // Wait for the results container to be visible and rendered
-            setTimeout(() => {
-                // Create new map with explicit center to avoid initial positioning issues
-                const centerLat = (data.departure_airport.latitude_deg + data.destination_airport.latitude_deg) / 2;
-                const centerLng = (data.departure_airport.longitude_deg + data.destination_airport.longitude_deg) / 2;
-                
+            if (map) { map.remove(); map = null; }
+
+            setTimeout(function() {
+                var centerLat = (data.departure_airport.latitude_deg + data.destination_airport.latitude_deg) / 2;
+                var centerLng = (data.departure_airport.longitude_deg + data.destination_airport.longitude_deg) / 2;
+
                 map = L.map('map', {
                     center: [centerLat, centerLng],
                     zoom: 4,
                     zoomControl: true,
                     scrollWheelZoom: true
                 });
-                
-                // Add tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors',
+
+                L.tileLayer(window.askTheme.getTileUrl(), {
+                    attribution: window.askTheme.getTileAttribution(),
                     maxZoom: 19
                 }).addTo(map);
-                
-                // Create custom icons for better visibility
-                const departureIcon = L.divIcon({
-                    html: '<div style="background: #ff6b6b; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📍</div>',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15],
-                    className: 'custom-departure-icon'
+
+                var depIcon = L.divIcon({
+                    html: '<div style="background:#2563eb;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:13px;font-family:Outfit,sans-serif;">D</div>',
+                    iconSize: [30, 30], iconAnchor: [15, 15], className: ''
                 });
-                
-                const destinationIcon = L.divIcon({
-                    html: '<div style="background: #4CAF50; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">🎯</div>',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15],
-                    className: 'custom-destination-icon'
+                var destIcon = L.divIcon({
+                    html: '<div style="background:#16a34a;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:13px;font-family:Outfit,sans-serif;">A</div>',
+                    iconSize: [30, 30], iconAnchor: [15, 15], className: ''
                 });
-                
-                // Create markers with custom icons
-                const departureMarker = L.marker([data.departure_airport.latitude_deg, data.departure_airport.longitude_deg], {icon: departureIcon})
-                    .bindPopup(`
-                        <div style="min-width: 200px;">
-                            <strong>📍 ${escapeHtml(data.departure_airport.name)}</strong><br><br>
-                            <strong>ICAO:</strong> ${escapeHtml(data.departure_airport.icao_code)}<br>
-                            <strong>IATA:</strong> ${escapeHtml(data.departure_airport.iata_code || 'N/A')}<br>
-                            <strong>City:</strong> ${escapeHtml(data.departure_airport.municipality || 'N/A')}<br>
-                            <strong>Country:</strong> ${escapeHtml(data.departure_airport.iso_country)}<br>
-                            <strong>Coordinates:</strong> ${data.departure_airport.latitude_deg.toFixed(4)}, ${data.departure_airport.longitude_deg.toFixed(4)}
-                        </div>
-                    `, {
-                        maxWidth: 300
-                    });
-                    
-                const destinationMarker = L.marker([data.destination_airport.latitude_deg, data.destination_airport.longitude_deg], {icon: destinationIcon})
-                    .bindPopup(`
-                        <div style="min-width: 200px;">
-                            <strong>🎯 ${escapeHtml(data.destination_airport.name)}</strong><br><br>
-                            <strong>ICAO:</strong> ${escapeHtml(data.destination_airport.icao_code)}<br>
-                            <strong>IATA:</strong> ${escapeHtml(data.destination_airport.iata_code || 'N/A')}<br>
-                            <strong>City:</strong> ${escapeHtml(data.destination_airport.municipality || 'N/A')}<br>
-                            <strong>Country:</strong> ${escapeHtml(data.destination_airport.iso_country)}<br>
-                            <strong>Coordinates:</strong> ${data.destination_airport.latitude_deg.toFixed(4)}, ${data.destination_airport.longitude_deg.toFixed(4)}
-                        </div>
-                    `, {
-                        maxWidth: 300
-                    });
-                
-                // Add markers to map
-                departureMarker.addTo(map);
-                destinationMarker.addTo(map);
-                
-                // Draw great circle line between airports with better styling
-                const greatCirclePoints = calculateGreatCirclePoints(
-                    data.departure_airport.latitude_deg, 
-                    data.departure_airport.longitude_deg,
-                    data.destination_airport.latitude_deg, 
-                    data.destination_airport.longitude_deg,
-                    100 // Number of intermediate points for smooth curve
+
+                var depMarker = L.marker([data.departure_airport.latitude_deg, data.departure_airport.longitude_deg], {icon: depIcon})
+                    .bindPopup('<strong>' + escapeHtml(data.departure_airport.name) + '</strong><br>' +
+                        escapeHtml(data.departure_airport.icao_code) + ' / ' + escapeHtml(data.departure_airport.iata_code || 'N/A') + '<br>' +
+                        escapeHtml(data.departure_airport.municipality || '') + ', ' + escapeHtml(data.departure_airport.iso_country),
+                        {maxWidth: 260}).addTo(map);
+
+                var destMarker = L.marker([data.destination_airport.latitude_deg, data.destination_airport.longitude_deg], {icon: destIcon})
+                    .bindPopup('<strong>' + escapeHtml(data.destination_airport.name) + '</strong><br>' +
+                        escapeHtml(data.destination_airport.icao_code) + ' / ' + escapeHtml(data.destination_airport.iata_code || 'N/A') + '<br>' +
+                        escapeHtml(data.destination_airport.municipality || '') + ', ' + escapeHtml(data.destination_airport.iso_country),
+                        {maxWidth: 260}).addTo(map);
+
+                var gcPoints = calculateGreatCirclePoints(
+                    data.departure_airport.latitude_deg, data.departure_airport.longitude_deg,
+                    data.destination_airport.latitude_deg, data.destination_airport.longitude_deg, 100
                 );
-                
-                const line = L.polyline(greatCirclePoints, {
-                    color: '#ff6b6b',
-                    weight: 3,
-                    opacity: 0.8,
-                    dashArray: '10, 5'
+
+                var line = L.polyline(gcPoints, {
+                    color: '#2563eb', weight: 2.5, opacity: 0.7, dashArray: '8, 5'
                 }).addTo(map);
-                
-                // Add distance label at great circle midpoint
-                const midpointIndex = Math.floor(greatCirclePoints.length / 2);
-                const [midLat, midLng] = greatCirclePoints[midpointIndex];
-                
-                const distanceLabel = L.divIcon({
-                    html: `<div style="background: rgba(255, 107, 107, 0.9); color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); white-space: nowrap;">${Math.round(data.distance_nm)} NM</div>`,
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0],
-                    className: 'distance-label'
+
+                var midIdx = Math.floor(gcPoints.length / 2);
+                var distLabel = L.divIcon({
+                    html: '<div style="background:#2563eb;color:#fff;padding:4px 10px;border-radius:12px;font-weight:600;font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);white-space:nowrap;font-family:JetBrains Mono,monospace;">' + Math.round(data.distance_nm) + ' NM</div>',
+                    iconSize: [0, 0], iconAnchor: [0, 0], className: ''
                 });
-                
-                L.marker([midLat, midLng], {icon: distanceLabel}).addTo(map);
-                
-                // Fit map to show both airports with better padding
-                const group = new L.featureGroup([departureMarker, destinationMarker, line]);
+                L.marker(gcPoints[midIdx], {icon: distLabel}).addTo(map);
+
+                var group = new L.featureGroup([depMarker, destMarker, line]);
                 map.fitBounds(group.getBounds().pad(0.15));
-                
-                // Force map to invalidate size after a brief delay to fix rendering issues
-                setTimeout(() => {
-                    map.invalidateSize();
-                }, 100);
-                
+                setTimeout(function() { map.invalidateSize(); }, 100);
             }, 100);
         }
 
-        // Calculate great circle points between two coordinates
-        function calculateGreatCirclePoints(lat1, lng1, lat2, lng2, numPoints = 100) {
-            const points = [];
-            
-            // Convert degrees to radians
-            const phi1 = lat1 * Math.PI / 180;
-            const phi2 = lat2 * Math.PI / 180;
-            const deltaLambda = (lng2 - lng1) * Math.PI / 180;
-            
-            // Calculate angular distance
-            const a = Math.sin((phi2 - phi1) / 2) * Math.sin((phi2 - phi1) / 2) +
-                     Math.cos(phi1) * Math.cos(phi2) *
-                     Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-            const angularDistance = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            
-            // Generate intermediate points
-            for (let i = 0; i <= numPoints; i++) {
-                const f = i / numPoints;
-                
-                if (f === 0) {
-                    points.push([lat1, lng1]);
-                } else if (f === 1) {
-                    points.push([lat2, lng2]);
-                } else {
-                    // Use spherical interpolation for great circle
-                    const A = Math.sin((1 - f) * angularDistance) / Math.sin(angularDistance);
-                    const B = Math.sin(f * angularDistance) / Math.sin(angularDistance);
-                    
-                    const x = A * Math.cos(phi1) * Math.cos(lng1 * Math.PI / 180) +
-                              B * Math.cos(phi2) * Math.cos(lng2 * Math.PI / 180);
-                    const y = A * Math.cos(phi1) * Math.sin(lng1 * Math.PI / 180) +
-                              B * Math.cos(phi2) * Math.sin(lng2 * Math.PI / 180);
-                    const z = A * Math.sin(phi1) + B * Math.sin(phi2);
-                    
-                    const phi = Math.atan2(z, Math.sqrt(x * x + y * y));
-                    const lambda = Math.atan2(y, x);
-                    
-                    points.push([phi * 180 / Math.PI, lambda * 180 / Math.PI]);
-                }
+        function calculateGreatCirclePoints(lat1, lng1, lat2, lng2, numPoints) {
+            var points = [];
+            var phi1 = lat1 * Math.PI / 180;
+            var phi2 = lat2 * Math.PI / 180;
+            var deltaLambda = (lng2 - lng1) * Math.PI / 180;
+
+            var a = Math.sin((phi2 - phi1) / 2) * Math.sin((phi2 - phi1) / 2) +
+                Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+            var angDist = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            for (var i = 0; i <= numPoints; i++) {
+                var f = i / numPoints;
+                if (f === 0) { points.push([lat1, lng1]); continue; }
+                if (f === 1) { points.push([lat2, lng2]); continue; }
+
+                var A = Math.sin((1 - f) * angDist) / Math.sin(angDist);
+                var B = Math.sin(f * angDist) / Math.sin(angDist);
+                var x = A * Math.cos(phi1) * Math.cos(lng1 * Math.PI / 180) + B * Math.cos(phi2) * Math.cos(lng2 * Math.PI / 180);
+                var y = A * Math.cos(phi1) * Math.sin(lng1 * Math.PI / 180) + B * Math.cos(phi2) * Math.sin(lng2 * Math.PI / 180);
+                var z = A * Math.sin(phi1) + B * Math.sin(phi2);
+                points.push([Math.atan2(z, Math.sqrt(x*x + y*y)) * 180 / Math.PI, Math.atan2(y, x) * 180 / Math.PI]);
             }
-            
             return points;
         }
 
-        // Escape HTML to prevent XSS
         function escapeHtml(text) {
-            const div = document.createElement('div');
+            var div = document.createElement('div');
             div.textContent = text || '';
             return div.innerHTML;
         }

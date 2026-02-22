@@ -4,264 +4,207 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Airport Swiss Knife</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/theme.css">
+    <script>(function(){var t=localStorage.getItem('ask-theme')||'system';var r=t==='system'?(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',r)})();</script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            color: white;
-        }
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        .hero {
             text-align: center;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+            margin-bottom: 36px;
+            padding-top: 20px;
         }
-        .content-wrapper {
-            display: flex;
-            gap: 40px;
-            align-items: flex-start;
-            justify-content: center;
-            flex-wrap: wrap;
+        .hero h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            margin: 0 0 6px;
         }
-        .header {
-            margin-bottom: 60px;
-        }
-        .header h1 {
-            font-size: 3.5rem;
-            margin: 0 0 20px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            font-weight: 300;
-        }
-        .header h1 .swiss {
-            color: #ff6b6b;
-            font-weight: 600;
-        }
-        .header p {
-            font-size: 1.2rem;
+        .hero h1 span { color: var(--accent); }
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
             margin: 0;
-            opacity: 0.9;
-            font-weight: 300;
         }
-        .nav-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 24px;
+            align-items: start;
         }
-        .status-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 350px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+
+        .tools-grid {
+            display: grid;
+            gap: 12px;
         }
-        .nav-section h2 {
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-            color: #ffffff;
-            font-weight: 400;
-        }
-        .feature-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 28px;
+            box-shadow: var(--shadow-sm);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, background-color 0.3s ease;
             cursor: pointer;
-        }
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin: 0 0 15px 0;
-            color: #ffffff;
-        }
-        .feature-card p {
-            font-size: 1rem;
-            margin: 0 0 20px 0;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-        .feature-link {
-            display: inline-block;
-            background: #ff6b6b;
-            color: white;
             text-decoration: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-        .feature-link:hover {
-            background: #ff5252;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        }
-        .footer {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-        }
-        .footer p {
-            margin: 0;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        .version {
-            font-weight: 600;
-            color: #ff6b6b;
-        }
-        .airplane-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
+            color: inherit;
             display: block;
         }
-        .status-item {
-            background: rgba(255, 255, 255, 0.1);
+        .tool-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            color: inherit;
+        }
+        .tool-card h3 {
+            font-size: 1.0625rem;
+            font-weight: 600;
+            margin: 0 0 6px;
+            color: var(--text);
+        }
+        .tool-card p {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin: 0 0 14px;
+        }
+        .tool-card .action {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: gap 0.15s ease;
+        }
+        .tool-card:hover .action { gap: 8px; }
+        .tool-card .action svg { width: 14px; height: 14px; }
+
+        .status-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .status-panel h2 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 0 0 16px;
+        }
+        .status-card {
+            background: var(--surface-alt);
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            text-align: left;
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
         }
-        .status-item h4 {
-            margin: 0 0 10px 0;
-            font-size: 1.2rem;
-            color: #ff6b6b;
+        .status-card:last-child { margin-bottom: 0; }
+        .status-card h4 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--accent);
             text-transform: capitalize;
+            margin: 0 0 10px;
         }
-        .status-detail {
+        .status-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 0.75rem;
         }
-        .status-label {
-            font-weight: 600;
-            opacity: 0.9;
-        }
+        .status-label { color: var(--text-secondary); font-weight: 500; }
         .status-value {
-            opacity: 0.8;
-            font-family: monospace;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6875rem;
         }
-        .commit-hash {
-            font-size: 0.8rem;
-            word-break: break-all;
+
+        @media (max-width: 900px) {
+            .content-grid { grid-template-columns: 1fr; }
         }
-        
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.5rem;
-            }
-            .nav-section {
-                padding: 30px 20px;
-                margin: 0 20px;
-            }
-            .feature-card {
-                padding: 25px 20px;
-            }
-            .content-wrapper {
-                flex-direction: column;
-                align-items: center;
-            }
-            .status-section {
-                min-width: auto;
-                width: 100%;
-                margin: 0 20px;
-            }
+            .hero h1 { font-size: 1.75rem; }
         }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <a href="/" class="topbar-brand"><span class="topbar-logo">ASK</span><span class="topbar-title">Airport Swiss Knife</span></a>
+        <div class="theme-switcher">
+            <button class="theme-btn" data-theme="light" title="Light theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+            <button class="theme-btn" data-theme="system" title="System theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+            <button class="theme-btn" data-theme="dark" title="Dark theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <h1>Airport <span class="swiss">Swiss Knife</span></h1>
+        <div class="hero">
+            <h1>Airport <span>Swiss Knife</span></h1>
             <p>Your comprehensive airport information toolkit</p>
         </div>
-        
-        <div class="content-wrapper">
-            <div class="nav-section">
-                <h2>Available Tools</h2>
-                
-                <div class="feature-card" onclick="window.location.href='/airports'">
-                    <div class="airplane-icon">✈️</div>
-                    <h3>Airport Search</h3>
-                    <p>Search and discover airports worldwide. Find detailed information including IATA/ICAO codes, location details, and more. Filter by country to narrow down your search.</p>
-                    <a href="/airports" class="feature-link" onclick="event.stopPropagation()">Start Searching</a>
-                </div>
 
-                <div class="feature-card" onclick="window.location.href='/distance'">
-                    <div class="airplane-icon">📏</div>
+        <div class="content-grid">
+            <div class="tools-grid">
+                <a href="/airports" class="tool-card">
+                    <h3>Airport Search</h3>
+                    <p>Search and discover airports worldwide. Find detailed information including IATA/ICAO codes, location details, and more. Filter by country to narrow your search.</p>
+                    <span class="action">Search airports <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                </a>
+                <a href="/distance" class="tool-card">
                     <h3>Distance Calculator</h3>
                     <p>Calculate the distance between two airports using their ICAO codes. Get precise nautical mile measurements and visualize the route on an interactive map.</p>
-                    <a href="/distance" class="feature-link" onclick="event.stopPropagation()">Calculate Distance</a>
-                </div>
-
-                <div class="feature-card" onclick="window.location.href='/reachable'">
-                    <div class="airplane-icon">🗺️</div>
+                    <span class="action">Calculate distance <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                </a>
+                <a href="/reachable" class="tool-card">
                     <h3>Reachable Airports</h3>
-                    <p>Find all airports within range of a given airport. Enter an ICAO code and maximum distance in nautical miles to discover reachable destinations on an interactive map.</p>
-                    <a href="/reachable" class="feature-link" onclick="event.stopPropagation()">Find Airports</a>
-                </div>
+                    <p>Find all airports within range of a given origin. Enter an ICAO code and maximum distance in nautical miles to discover reachable destinations on an interactive map.</p>
+                    <span class="action">Find airports <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                </a>
             </div>
-            
-            <div class="status-section">
-                <h2>Data Import Status</h2>
+
+            <div class="status-panel">
+                <h2>Data Status</h2>
                 {{range .ImportStatus}}
-                <div class="status-item">
+                <div class="status-card">
                     <h4>{{.TableName}}</h4>
-                    <div class="status-detail">
-                        <span class="status-label">Records:</span>
+                    <div class="status-row">
+                        <span class="status-label">Records</span>
                         <span class="status-value">{{.RecordCount}}</span>
                     </div>
-                    <div class="status-detail">
-                        <span class="status-label">Last Import:</span>
+                    <div class="status-row">
+                        <span class="status-label">Last Import</span>
                         <span class="status-value">{{.LastImportDate}}</span>
                     </div>
-                    <div class="status-detail">
-                        <span class="status-label">Data Source:</span>
+                    <div class="status-row">
+                        <span class="status-label">Data Source</span>
                         <span class="status-value">{{.GitCommitDate}}</span>
                     </div>
-                    <div class="status-detail">
-                        <span class="status-label">Commit:</span>
-                        <span class="status-value commit-hash">{{slice .GitCommitHash 0 12}}...</span>
+                    <div class="status-row">
+                        <span class="status-label">Commit</span>
+                        <span class="status-value">{{slice .GitCommitHash 0 12}}</span>
                     </div>
                 </div>
                 {{else}}
-                <div class="status-item">
-                    <p>No import data available yet. Run the initialization command to import data.</p>
+                <div class="status-card">
+                    <p style="font-size:0.8125rem;color:var(--text-muted);">No import data available. Run initialization to import data.</p>
                 </div>
                 {{end}}
             </div>
         </div>
     </div>
-    
-    <div class="footer">
-        <p>Airport Swiss Knife - Version <span class="version">{{.Version}}</span></p>
+
+    <div class="site-footer">
+        Airport Swiss Knife &mdash; Version <strong>{{.Version}}</strong>
     </div>
+
+    <script src="/static/theme.js"></script>
 </body>
 </html>

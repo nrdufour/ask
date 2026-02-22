@@ -56,6 +56,9 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/country", s.countryListHandler).Methods("GET")
 	s.router.HandleFunc("/api/import/status", s.importStatusHandler).Methods("GET")
 
+	// Static files
+	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	// Web routes
 	s.router.HandleFunc("/", s.indexPageHandler).Methods("GET")
 	s.router.HandleFunc("/airports", s.airportsPageHandler).Methods("GET")

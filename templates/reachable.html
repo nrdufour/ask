@@ -3,286 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reachable Airports</title>
+    <title>Reachable Airports &mdash; ASK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/theme.css">
+    <script>(function(){var t=localStorage.getItem('ask-theme')||'system';var r=t==='system'?(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',r)})();</script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
-            min-height: 100vh;
+        .form-row {
             display: flex;
-            flex-direction: column;
-        }
-        .main-content {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        h1 {
-            color: white;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            font-weight: 300;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        .home-link {
-            display: inline-block;
-            color: #ff6b6b;
-            text-decoration: none;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .home-link:hover {
-            color: #ff5252;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .form-inputs {
-            display: flex;
-            gap: 20px;
+            gap: 16px;
             align-items: flex-end;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
-        .form-group {
-            flex: 0 0 auto;
-        }
-        .form-submit {
-            flex: 0 0 auto;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: white;
-            font-size: 1.1rem;
-        }
-        input[type="text"],
-        input[type="number"] {
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }
-        input[type="text"] {
+        .form-group input[type="text"] {
             width: 140px;
             text-transform: uppercase;
         }
-        input[type="number"] {
-            width: 160px;
+        .form-group input[type="number"] { width: 160px; }
+
+        .filter-section {
+            margin-bottom: 8px;
         }
-        input[type="text"]:focus,
-        input[type="number"]:focus {
-            outline: none;
-            border-color: #ff6b6b;
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        .filter-section label {
+            margin-bottom: 8px;
         }
-        input[type="text"]::placeholder,
-        input[type="number"]::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: none;
-        }
-        /* Hide number input spinners */
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        button {
-            background: #ff6b6b;
-            color: white;
-            padding: 15px 35px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        button:hover {
-            background: #ff5252;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        }
-        button:disabled {
-            background: rgba(108, 117, 125, 0.6);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .type-filters {
-            margin-bottom: 20px;
-        }
-        .type-filters label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        .type-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .type-chip {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            user-select: none;
-        }
-        .type-chip:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        .type-chip.active {
-            background: #ff6b6b;
-            border-color: #ff6b6b;
-        }
-        .loading {
+
+        .results-section {
             display: none;
-            color: #ff6b6b;
-            font-style: italic;
-            margin-top: 10px;
-        }
-        .error {
-            color: #ffb3b3;
-            margin-top: 10px;
-            display: none;
-            background: rgba(255, 107, 107, 0.2);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 107, 107, 0.4);
-        }
-        .results {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            display: none;
-            flex: 1;
+            margin-top: 24px;
         }
         .summary {
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        .summary strong {
-            color: #ff6b6b;
+            margin-bottom: 16px;
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
         }
         .map-sidebar {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             height: 550px;
         }
-        #map {
+        .map-card {
             flex: 1;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
             min-height: 400px;
         }
         .sidebar {
             width: 350px;
             overflow-y: auto;
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 10px;
-            padding: 15px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        .sidebar h3 {
-            margin: 0 0 15px 0;
-            font-size: 1.1rem;
-            color: #ff6b6b;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding-bottom: 10px;
+        .sidebar-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .sidebar-list {
+            padding: 8px;
         }
         .sidebar-item {
-            background: rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.1s ease;
             border: 1px solid transparent;
         }
         .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(255, 107, 107, 0.4);
+            background: var(--accent-subtle);
+            border-color: var(--border);
         }
         .sidebar-item .name {
             font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 4px;
+            font-size: 0.875rem;
+            margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text);
         }
         .sidebar-item .codes {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
         }
         .sidebar-item .dist {
-            font-size: 0.85rem;
-            color: #ff6b6b;
+            font-size: 0.8125rem;
+            color: var(--accent);
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            .main-content {
-                padding: 25px 20px;
-            }
-            h1 {
-                font-size: 1.8rem;
-            }
-            .form-inputs {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            input[type="text"],
-            input[type="number"] {
-                width: 100%;
-            }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .form-group input[type="text"],
+            .form-group input[type="number"] { width: 100%; }
             .map-sidebar {
                 flex-direction: column;
                 height: auto;
             }
-            #map {
-                height: 350px;
-            }
+            .map-card { min-height: 350px; }
+            #map { min-height: 350px; }
             .sidebar {
                 width: auto;
                 max-height: 300px;
@@ -291,27 +132,38 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="main-content">
-            <a href="/" class="home-link">&larr; Back to Home</a>
-            <h1>Reachable Airports</h1>
+    <div class="topbar">
+        <a href="/" class="topbar-brand"><span class="topbar-logo">ASK</span><span class="topbar-title">Airport Swiss Knife</span></a>
+        <div class="theme-switcher">
+            <button class="theme-btn" data-theme="light" title="Light theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+            <button class="theme-btn" data-theme="system" title="System theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+            <button class="theme-btn" data-theme="dark" title="Dark theme"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        </div>
+    </div>
 
+    <div class="container">
+        <div class="page-header">
+            <a href="/" class="back-link">&larr; Back to Home</a>
+            <h1>Reachable Airports</h1>
+        </div>
+
+        <div class="card">
             <form id="reachableForm">
-                <div class="form-inputs">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="icao">Origin Airport (ICAO):</label>
+                        <label for="icao">Origin (ICAO)</label>
                         <input type="text" id="icao" name="icao" placeholder="e.g., LFPG" maxlength="4" required>
                     </div>
                     <div class="form-group">
-                        <label for="range">Range (NM):</label>
+                        <label for="range">Range (NM)</label>
                         <input type="number" id="range" name="range" placeholder="e.g., 500" min="1" max="10800" required>
                     </div>
-                    <div class="form-submit">
-                        <button type="submit" id="searchButton">Search</button>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" id="searchButton">Search</button>
                     </div>
                 </div>
-                <div class="type-filters">
-                    <label>Airport Types:</label>
+                <div class="filter-section">
+                    <label>Airport Types</label>
                     <div class="type-chips" id="typeChips">
                         <span class="type-chip active" data-type="large_airport">Large</span>
                         <span class="type-chip active" data-type="medium_airport">Medium</span>
@@ -322,24 +174,27 @@
                         <span class="type-chip" data-type="balloonport">Balloonport</span>
                     </div>
                 </div>
-                <div class="loading" id="loading">Searching for reachable airports...</div>
-                <div class="error" id="error"></div>
+                <div class="loading-msg" id="loading">Searching for reachable airports...</div>
+                <div class="error-msg" id="error"></div>
             </form>
         </div>
 
-        <div class="results" id="results">
+        <div class="results-section" id="results">
             <div class="summary" id="summary"></div>
             <div class="map-sidebar">
-                <div id="map"></div>
-                <div class="sidebar" id="sidebar">
-                    <h3>Reachable Airports</h3>
-                    <div id="airportList"></div>
+                <div class="map-card">
+                    <div id="map"></div>
+                </div>
+                <div class="sidebar">
+                    <div class="sidebar-header">Reachable Airports</div>
+                    <div class="sidebar-list" id="airportList"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/theme.js"></script>
     <script>
         let map = null;
         let markers = [];
@@ -377,13 +232,11 @@
                 error.style.display = 'block';
                 return;
             }
-
             if (icao.length !== 4) {
                 error.textContent = 'ICAO code must be exactly 4 characters';
                 error.style.display = 'block';
                 return;
             }
-
             const rangeNum = parseFloat(range);
             if (isNaN(rangeNum) || rangeNum <= 0 || rangeNum > 10800) {
                 error.textContent = 'Range must be between 1 and 10800 NM';
@@ -407,7 +260,6 @@
                     const errorText = await response.text();
                     throw new Error(errorText || 'Search failed');
                 }
-
                 const data = await response.json();
                 displayResults(data);
             } catch (err) {
@@ -444,7 +296,7 @@
             list.innerHTML = '';
 
             if (data.airports === null || data.airports.length === 0) {
-                list.innerHTML = '<p style="opacity:0.7;text-align:center;">No airports found in range.</p>';
+                list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px 16px;font-size:0.8125rem;">No airports found in range.</p>';
                 return;
             }
 
@@ -457,9 +309,7 @@
                     '<div class="codes">' + escapeHtml(ap.icao_code || '-') + ' / ' + escapeHtml(ap.iata_code || '-') +
                     (ap.municipality ? ' &middot; ' + escapeHtml(ap.municipality) : '') + '</div>' +
                     '<div class="dist">' + item.distance_nm + ' NM</div>';
-                div.addEventListener('click', function() {
-                    panToMarker(idx);
-                });
+                div.addEventListener('click', function() { panToMarker(idx); });
                 list.appendChild(div);
             });
         }
@@ -472,12 +322,7 @@
         }
 
         function initializeMap(data) {
-            const mapContainer = document.getElementById('map');
-
-            if (map) {
-                map.remove();
-                map = null;
-            }
+            if (map) { map.remove(); map = null; }
             markers = [];
 
             setTimeout(function() {
@@ -488,66 +333,54 @@
                     scrollWheelZoom: true
                 });
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors',
+                L.tileLayer(window.askTheme.getTileUrl(), {
+                    attribution: window.askTheme.getTileAttribution(),
                     maxZoom: 19
                 }).addTo(map);
 
-                // Range circle (NM to meters: 1 NM = 1852 m)
                 L.circle([data.origin_airport.latitude_deg, data.origin_airport.longitude_deg], {
                     radius: data.range_nm * 1852,
-                    color: '#ff6b6b',
+                    color: '#2563eb',
                     weight: 2,
                     dashArray: '8, 6',
-                    fillColor: '#ff6b6b',
-                    fillOpacity: 0.06,
+                    fillColor: '#2563eb',
+                    fillOpacity: 0.04,
                     interactive: false
                 }).addTo(map);
 
-                // Origin marker
                 var originIcon = L.divIcon({
-                    html: '<div style="background:#ff6b6b;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:14px;">O</div>',
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16],
-                    className: ''
+                    html: '<div style="background:#2563eb;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:14px;font-family:Outfit,sans-serif;">O</div>',
+                    iconSize: [32, 32], iconAnchor: [16, 16], className: ''
                 });
 
                 L.marker([data.origin_airport.latitude_deg, data.origin_airport.longitude_deg], { icon: originIcon })
                     .bindPopup(
-                        '<div style="min-width:180px;">' +
-                        '<strong>' + escapeHtml(data.origin_airport.name) + '</strong><br><br>' +
-                        '<strong>ICAO:</strong> ' + escapeHtml(data.origin_airport.icao_code) + '<br>' +
-                        '<strong>IATA:</strong> ' + escapeHtml(data.origin_airport.iata_code || 'N/A') + '<br>' +
-                        '<strong>City:</strong> ' + escapeHtml(data.origin_airport.municipality || 'N/A') + '<br>' +
-                        '<strong>Country:</strong> ' + escapeHtml(data.origin_airport.iso_country) +
-                        '</div>', { maxWidth: 300 })
+                        '<strong>' + escapeHtml(data.origin_airport.name) + '</strong><br>' +
+                        escapeHtml(data.origin_airport.icao_code) + ' / ' + escapeHtml(data.origin_airport.iata_code || 'N/A') + '<br>' +
+                        escapeHtml(data.origin_airport.municipality || '') + ', ' + escapeHtml(data.origin_airport.iso_country),
+                        { maxWidth: 260 })
                     .addTo(map);
 
-                // Reachable markers
                 if (data.airports) {
                     data.airports.forEach(function(item, idx) {
                         var ap = item.airport;
                         var marker = L.circleMarker([ap.latitude_deg, ap.longitude_deg], {
                             radius: 6,
-                            fillColor: '#4CAF50',
+                            fillColor: '#16a34a',
                             color: '#fff',
                             weight: 1.5,
                             fillOpacity: 0.85
                         }).bindPopup(
-                            '<div style="min-width:180px;">' +
-                            '<strong>' + escapeHtml(ap.name) + '</strong><br><br>' +
-                            '<strong>ICAO:</strong> ' + escapeHtml(ap.icao_code || 'N/A') + '<br>' +
-                            '<strong>IATA:</strong> ' + escapeHtml(ap.iata_code || 'N/A') + '<br>' +
-                            '<strong>City:</strong> ' + escapeHtml(ap.municipality || 'N/A') + '<br>' +
-                            '<strong>Country:</strong> ' + escapeHtml(ap.iso_country) + '<br>' +
-                            '<strong>Distance:</strong> ' + item.distance_nm + ' NM' +
-                            '</div>', { maxWidth: 300 }
+                            '<strong>' + escapeHtml(ap.name) + '</strong><br>' +
+                            escapeHtml(ap.icao_code || 'N/A') + ' / ' + escapeHtml(ap.iata_code || 'N/A') + '<br>' +
+                            escapeHtml(ap.municipality || '') + ', ' + escapeHtml(ap.iso_country) + '<br>' +
+                            '<strong>' + item.distance_nm + ' NM</strong>',
+                            { maxWidth: 260 }
                         ).addTo(map);
                         markers.push(marker);
                     });
                 }
 
-                // Fit map to range circle bounds
                 var latDelta = data.range_nm / 60;
                 var cosLat = Math.cos(data.origin_airport.latitude_deg * Math.PI / 180);
                 var lonDelta = data.range_nm / (60 * Math.max(cosLat, 0.01));
