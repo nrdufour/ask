@@ -122,12 +122,18 @@
                 flex-direction: column;
                 height: auto;
             }
-            .map-card { min-height: 350px; }
-            #map { min-height: 350px; }
+            .map-card { min-height: 300px; }
+            #map { min-height: 300px; }
             .sidebar {
                 width: auto;
-                max-height: 300px;
+                max-height: 400px;
             }
+        }
+        @media (max-width: 480px) {
+            .map-card { min-height: 250px; }
+            #map { min-height: 250px; }
+            .sidebar { max-height: 50vh; }
+            .sidebar-item { padding: 14px; }
         }
     </style>
 </head>

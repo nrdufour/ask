@@ -58,6 +58,16 @@
             .form-group input[type="text"],
             .form-group select { width: 100%; }
         }
+        @media (max-width: 600px) {
+            /* Hide Country (col 5) and Elevation (col 7) */
+            table th:nth-child(5), table td:nth-child(5),
+            table th:nth-child(7), table td:nth-child(7) { display: none; }
+        }
+        @media (max-width: 480px) {
+            /* Also hide City (col 4) — leaves Name, IATA, ICAO, Type */
+            table th:nth-child(4), table td:nth-child(4) { display: none; }
+            th, td { padding: 8px 6px; }
+        }
     </style>
 </head>
 <body>

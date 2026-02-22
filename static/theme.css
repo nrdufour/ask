@@ -391,4 +391,18 @@ td strong { color: var(--text); font-weight: 600; }
 
 @media (max-width: 480px) {
     .topbar-title { display: none; }
+    .theme-btn { width: 44px; height: 44px; }
+    label { font-size: 0.875rem; }
+    th, td { font-size: 0.875rem; padding: 10px; }
+    .back-link { min-height: 44px; }
+    .page-header h1 { font-size: 1.375rem; }
+    .btn { min-height: 44px; }
+    .type-chip { min-height: 44px; padding: 10px 16px; }
+    .site-footer { font-size: 0.875rem; }
+}
+
+@media (max-width: 360px) {
+    .topbar { padding: 10px 12px; }
+    .container { padding: 0 12px 24px; }
+    .card { padding: 16px; }
 }
