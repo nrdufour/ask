@@ -170,6 +170,17 @@
     <script src="/static/theme.js"></script>
     <script>
         let map = null;
+        let tileLayer = null;
+
+        window.addEventListener('theme-changed', function() {
+            if (map && tileLayer) {
+                map.removeLayer(tileLayer);
+                tileLayer = L.tileLayer(window.askTheme.getTileUrl(), {
+                    attribution: window.askTheme.getTileAttribution(),
+                    maxZoom: 19
+                }).addTo(map);
+            }
+        });
 
         document.getElementById('departure').addEventListener('input', function(e) {
             e.target.value = e.target.value.toUpperCase();
@@ -271,7 +282,7 @@
                     scrollWheelZoom: true
                 });
 
-                L.tileLayer(window.askTheme.getTileUrl(), {
+                tileLayer = L.tileLayer(window.askTheme.getTileUrl(), {
                     attribution: window.askTheme.getTileAttribution(),
                     maxZoom: 19
                 }).addTo(map);

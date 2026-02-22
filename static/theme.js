@@ -11,6 +11,7 @@
         document.querySelectorAll('.theme-btn').forEach(function (btn) {
             btn.classList.toggle('active', btn.getAttribute('data-theme') === preference);
         });
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: resolved } }));
     }
 
     function init() {
