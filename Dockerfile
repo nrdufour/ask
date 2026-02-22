@@ -20,6 +20,7 @@ RUN mkdir -p /app /home/appuser/.ask && \
 COPY --from=build --chown=appuser:appgroup /ask/ask /app/ask
 COPY --chown=appuser:appgroup entrypoint.sh /app/entrypoint.sh
 COPY --chown=appuser:appgroup templates /app/templates
+COPY --chown=appuser:appgroup static /app/static
 
 # Make the startup script executable
 RUN chmod +x /app/entrypoint.sh
