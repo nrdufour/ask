@@ -8,8 +8,8 @@ require (
 	github.com/go-git/go-git/v5 v5.17.0
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.34
-	github.com/ringsaturn/tzf v1.0.3
-	github.com/ringsaturn/tzf-rel-lite v0.0.2025-c
+	github.com/ringsaturn/tzf v1.0.4
+	github.com/ringsaturn/tzf-rel-lite v0.0.2026-a
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	google.golang.org/protobuf v1.36.11
@@ -43,7 +43,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect
-	github.com/tidwall/geojson v1.4.5 // indirect
+	github.com/tidwall/geojson v1.4.6 // indirect
 	github.com/tidwall/rtree v1.10.0 // indirect
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect

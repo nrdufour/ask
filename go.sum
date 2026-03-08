@@ -97,8 +97,12 @@ github.com/ringsaturn/go-cities.json v0.6.13 h1:p5afPcJ/tEE6uzFCOzLSHJYXgWnGdPmw
 github.com/ringsaturn/go-cities.json v0.6.13/go.mod h1:VtklT4Sod9i6kvXXNZV63sfjeCX9l11OQfaAvPu+p4M=
 github.com/ringsaturn/tzf v1.0.3 h1:DdGcCiHpS6kg0Fo0XK+YlwNGIRXK3rs+KvFAd6b5XfQ=
 github.com/ringsaturn/tzf v1.0.3/go.mod h1:8wWHQjIYklMR3uG9cIkzc/otIBhit3vtAX/D78cXNpY=
+github.com/ringsaturn/tzf v1.0.4 h1:mhMyvtuBO/P8WFtjcixIyeSOcZzOa+TGO/Z6MXusSB4=
+github.com/ringsaturn/tzf v1.0.4/go.mod h1:F4/cbcPnlDqYdaqEIQ6Am+VtZUq5FqVR0PKY1eHrm7s=
 github.com/ringsaturn/tzf-rel-lite v0.0.2025-c h1:CUs4l73ApN87MhlAhp1UtcRe3E5UFMQnl9d9XtJiHvg=
 github.com/ringsaturn/tzf-rel-lite v0.0.2025-c/go.mod h1:SyVF6OU+Le0vKajtTA7PvYabdYCJsDlmplHuXeCZDrw=
+github.com/ringsaturn/tzf-rel-lite v0.0.2026-a h1:Ja9S5DnHTtNRAdQQPgfHEHEba2X6AwM6UMm5z0Dq82Y=
+github.com/ringsaturn/tzf-rel-lite v0.0.2026-a/go.mod h1:SyVF6OU+Le0vKajtTA7PvYabdYCJsDlmplHuXeCZDrw=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
@@ -140,6 +144,8 @@ github.com/tidwall/geoindex v1.7.0 h1:jtk41sfgwIt8MEDyC3xyKSj75iXXf6rjReJGDNPtR5
 github.com/tidwall/geoindex v1.7.0/go.mod h1:rvVVNEFfkJVWGUdEfU8QaoOg/9zFX0h9ofWzA60mz1I=
 github.com/tidwall/geojson v1.4.5 h1:BFVb5Pr7WZJMqFXy1LVudt5hPEWR3g4uhjk5Ezc3GzA=
 github.com/tidwall/geojson v1.4.5/go.mod h1:1cn3UWfSYCJOq53NZoQ9rirdw89+DM0vw+ZOAVvuReg=
+github.com/tidwall/geojson v1.4.6 h1:HpEGer4tc5ieFn8Ts8aTG9fo+hgFJkqfql4O9cgphmg=
+github.com/tidwall/geojson v1.4.6/go.mod h1:1cn3UWfSYCJOq53NZoQ9rirdw89+DM0vw+ZOAVvuReg=
 github.com/tidwall/gjson v1.12.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/lotsa v1.0.2/go.mod h1:X6NiU+4yHA3fE3Puvpnn1XMDrFZrE9JO2/w+UMuqgR8=
 github.com/tidwall/lotsa v1.0.4 h1:7jF9n2JVRuI42E4AqBlbAcjF6ACyI+8v46/CYQY47ZI=
