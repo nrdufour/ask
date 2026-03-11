@@ -22,4 +22,3 @@ primary_region = 'iad'
 
 [processes]
   app = ""
-  restart = "on-failure"
