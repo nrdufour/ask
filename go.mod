@@ -5,7 +5,7 @@ go 1.25
 toolchain go1.26.2
 
 require (
-	github.com/go-git/go-git/v5 v5.17.2
+	github.com/go-git/go-git/v5 v5.18.0
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.42
 	github.com/ringsaturn/tzf v1.0.4
