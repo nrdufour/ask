@@ -137,6 +137,8 @@ github.com/ringsaturn/tzf-rel-lite v0.0.2025-c h1:CUs4l73ApN87MhlAhp1UtcRe3E5UFM
 github.com/ringsaturn/tzf-rel-lite v0.0.2025-c/go.mod h1:SyVF6OU+Le0vKajtTA7PvYabdYCJsDlmplHuXeCZDrw=
 github.com/ringsaturn/tzf-rel-lite v0.0.2026-a h1:Ja9S5DnHTtNRAdQQPgfHEHEba2X6AwM6UMm5z0Dq82Y=
 github.com/ringsaturn/tzf-rel-lite v0.0.2026-a/go.mod h1:SyVF6OU+Le0vKajtTA7PvYabdYCJsDlmplHuXeCZDrw=
+github.com/ringsaturn/tzf-rel-lite v0.0.2026-b h1:iDwtOI02sOefkbp584on6EPItsP5HCcVx+z3JsN/l+I=
+github.com/ringsaturn/tzf-rel-lite v0.0.2026-b/go.mod h1:nSjdkvjyZxG3C3epG1RyMwfYGcJNXgmjSrl6E+o4Dlw=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
