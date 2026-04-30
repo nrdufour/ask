@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.18.0
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.44
-	github.com/ringsaturn/tzf v1.1.0
+	github.com/ringsaturn/tzf v1.1.1
 	github.com/ringsaturn/tzf-rel-lite v0.0.2026-a
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
@@ -34,7 +34,7 @@ require (
 	github.com/paulmach/orb v0.13.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pjbgf/sha1cd v0.3.2 // indirect
-	github.com/ringsaturn/tzf-dist v0.0.2026-a // indirect
+	github.com/ringsaturn/tzf-dist v0.0.2026-b // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
