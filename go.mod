@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.19.0
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.44
-	github.com/ringsaturn/tzf v1.2.0
+	github.com/ringsaturn/tzf v1.2.1
 	github.com/ringsaturn/tzf-rel-lite v0.0.2026-b
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
