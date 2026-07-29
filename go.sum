@@ -141,6 +141,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/ringsaturn/go-cities.json v0.6.13 h1:p5afPcJ/tEE6uzFCOzLSHJYXgWnGdPmwZB9KBrEASxc=
 github.com/ringsaturn/go-cities.json v0.6.13/go.mod h1:VtklT4Sod9i6kvXXNZV63sfjeCX9l11OQfaAvPu+p4M=
+github.com/ringsaturn/orb v0.15.0 h1:+jLFo3JzHX2yg5kILpfcLHokKXywqNHBtgEDo6SJOuk=
+github.com/ringsaturn/orb v0.15.0/go.mod h1:kF8F7MSKFRPm0HxTzlLz8k/jkexsV3MVcultHKVFmzg=
 github.com/ringsaturn/tzf v1.0.3 h1:DdGcCiHpS6kg0Fo0XK+YlwNGIRXK3rs+KvFAd6b5XfQ=
 github.com/ringsaturn/tzf v1.0.3/go.mod h1:8wWHQjIYklMR3uG9cIkzc/otIBhit3vtAX/D78cXNpY=
 github.com/ringsaturn/tzf v1.0.4 h1:mhMyvtuBO/P8WFtjcixIyeSOcZzOa+TGO/Z6MXusSB4=
@@ -155,6 +157,8 @@ github.com/ringsaturn/tzf v1.2.1 h1:KAaod68Ey7OSIBfYH+l9/DTKjHnctPUyyAaahaIOn7o=
 github.com/ringsaturn/tzf v1.2.1/go.mod h1:Umn/OVUgCl96XGHcH1NuKKay2HTBN5xqSiL2Gzsrl2k=
 github.com/ringsaturn/tzf v1.2.3 h1:iuEMZIgzo5pg5Q2vUIM274cjmvp8wI4/q7Ic7hReJxY=
 github.com/ringsaturn/tzf v1.2.3/go.mod h1:beR4RQuMSnTxLZBDwIb2zCNtOKrfj3fdqr5vAd5/yzg=
+github.com/ringsaturn/tzf v1.2.5 h1:bkZqp++IkuiHXArgY0H7kpxkW57sTgC1Pi8IjNCRl1A=
+github.com/ringsaturn/tzf v1.2.5/go.mod h1:EyV2g/W08JginFQWHE8sr47BKZxyOkhAEyiO53CaK9Y=
 github.com/ringsaturn/tzf-dist v0.0.2026-a h1:NH/hrv453fX8Z7CrY++Veu7ZXUksKWKyMvPZyWLMxpM=
 github.com/ringsaturn/tzf-dist v0.0.2026-a/go.mod h1:MLn3mRLioai5ceZLV8k+uAr4cLxdVEHoTQIGKpuVS/c=
 github.com/ringsaturn/tzf-dist v0.0.2026-b h1:4oxSjuaI7gCCUzKVOvo0KOPuqADWZtFr46/UBKTxOas=
