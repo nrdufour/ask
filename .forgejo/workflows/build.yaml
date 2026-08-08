@@ -36,16 +36,11 @@ jobs:
           username: ${{ secrets.GIT_USERNAME }}
           password: ${{ secrets.GIT_PASSWORD }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-        with:
-          buildkitd-config-inline: |
-            [registry."forge.internal"]
-              http = true
-              insecure = true
+      # No QEMU and no builder setup: the runner supplies a buildx builder
+      # spanning two NATIVE buildkitd nodes (amd64 on hawk, arm64 on opi03)
+      # through BUILDX_BUILDER, so naming the platforms below is enough.
+      #
+      # See avalanche: docs/architecture/deployment/multi-arch-image-builds.md
 
       - name: Build and push
         uses: docker/build-push-action@v7
