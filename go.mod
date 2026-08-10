@@ -12,7 +12,7 @@ require (
 	github.com/ringsaturn/tzf-rel-lite v0.0.2026-b
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
