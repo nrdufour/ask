@@ -175,12 +175,15 @@ github.com/ringsaturn/tzf-dist v0.0.2026-b-fix1 h1:2XqoK1ymoselNxhSVWTC8SwfBaleL
 github.com/ringsaturn/tzf-dist v0.0.2026-b-fix1/go.mod h1:MLn3mRLioai5ceZLV8k+uAr4cLxdVEHoTQIGKpuVS/c=
 github.com/ringsaturn/tzf-dist v0.0.2026-c-fix1 h1:GPSbb2L+LSfEvrMXAC25VT0n+MMk80W+qnUpnIA48TI=
 github.com/ringsaturn/tzf-dist v0.0.2026-c-fix1/go.mod h1:MLn3mRLioai5ceZLV8k+uAr4cLxdVEHoTQIGKpuVS/c=
+github.com/ringsaturn/tzf-dist v0.0.2026-c-tzb1 h1:8MTD8pncCXXhuINbHjwmiGUeHRKmw+t041kO+2cfjjc=
+github.com/ringsaturn/tzf-dist v0.0.2026-c-tzb1/go.mod h1:MLn3mRLioai5ceZLV8k+uAr4cLxdVEHoTQIGKpuVS/c=
 github.com/ringsaturn/tzf-rel-lite v0.0.2025-c h1:CUs4l73ApN87MhlAhp1UtcRe3E5UFMQnl9d9XtJiHvg=
 github.com/ringsaturn/tzf-rel-lite v0.0.2025-c/go.mod h1:SyVF6OU+Le0vKajtTA7PvYabdYCJsDlmplHuXeCZDrw=
 github.com/ringsaturn/tzf-rel-lite v0.0.2026-a h1:Ja9S5DnHTtNRAdQQPgfHEHEba2X6AwM6UMm5z0Dq82Y=
 github.com/ringsaturn/tzf-rel-lite v0.0.2026-a/go.mod h1:SyVF6OU+Le0vKajtTA7PvYabdYCJsDlmplHuXeCZDrw=
 github.com/ringsaturn/tzf-rel-lite v0.0.2026-b h1:iDwtOI02sOefkbp584on6EPItsP5HCcVx+z3JsN/l+I=
 github.com/ringsaturn/tzf-rel-lite v0.0.2026-b/go.mod h1:nSjdkvjyZxG3C3epG1RyMwfYGcJNXgmjSrl6E+o4Dlw=
+github.com/ringsaturn/tzf/v2 v2.0.0/go.mod h1:7gPccEk6bwYwYPpTVKsZmLlktgI4HwQkTSHPcXVh0LA=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
@@ -235,6 +238,8 @@ github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhso
 github.com/tidwall/rtree v1.3.1/go.mod h1:S+JSsqPTI8LfWA4xHBo5eXzie8WJLVFeppAutSegl6M=
 github.com/tidwall/rtree v1.10.0 h1:+EcI8fboEaW1L3/9oW/6AMoQ8HiEIHyR7bQOGnmz4Mg=
 github.com/tidwall/rtree v1.10.0/go.mod h1:iDJQ9NBRtbfKkzZu02za+mIlaP+bjYPnunbSNidpbCQ=
+github.com/tidwall/rtree v1.11.1 h1:Rsy9+LvduwOALW3QjW6Wsg3bNkxEZ82QsIClyl2HznY=
+github.com/tidwall/rtree v1.11.1/go.mod h1:9ZTMZJGMIG0/QI2hlCS0LQM/bULKMnK3cruKip+9BiQ=
 github.com/tidwall/sjson v1.2.4/go.mod h1:098SZ494YoMWPmMO6ct4dcFnqxwj9r/gF0Etp19pSNM=
 github.com/twpayne/go-polyline v1.1.1 h1:/tSF1BR7rN4HWj4XKqvRUNrCiYVMCvywxTFVofvDV0w=
 github.com/twpayne/go-polyline v1.1.1/go.mod h1:ybd9IWWivW/rlXPXuuckeKUyF3yrIim+iqA7kSl4NFY=

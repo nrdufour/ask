@@ -10,6 +10,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/ringsaturn/tzf v1.2.5
 	github.com/ringsaturn/tzf-rel-lite v0.0.2026-b
+	github.com/ringsaturn/tzf/v2 v2.0.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	google.golang.org/protobuf v1.36.12
@@ -36,7 +37,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/ringsaturn/orb v0.15.0 // indirect
-	github.com/ringsaturn/tzf-dist v0.0.2026-c-fix1 // indirect
+	github.com/ringsaturn/tzf-dist v0.0.2026-c-tzb1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
@@ -47,7 +48,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/geojson v1.4.6 // indirect
-	github.com/tidwall/rtree v1.10.0 // indirect
+	github.com/tidwall/rtree v1.11.1 // indirect
 	github.com/twpayne/go-polyline v1.1.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
