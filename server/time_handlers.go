@@ -6,21 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ringsaturn/tzf"
-	pb "github.com/ringsaturn/tzf/gen/go/tzf/v1"
-	tzfrellite "github.com/ringsaturn/tzf-rel-lite"
-	"google.golang.org/protobuf/proto"
+	"github.com/ringsaturn/tzf/v2"
 )
 
 var finder tzf.F
 
 func init() {
-	input := &pb.CompressedTimezones{}
-	if err := proto.Unmarshal(tzfrellite.LiteCompressData, input); err != nil {
-		panic("failed to unmarshal compressed timezone data: " + err.Error())
-	}
 	var err error
-	finder, err = tzf.NewFinderFromCompressed(input)
+	finder, err = tzf.NewDefaultFinder()
 	if err != nil {
 		panic("failed to initialize timezone finder: " + err.Error())
 	}
