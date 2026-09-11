@@ -1,5 +1,8 @@
-name: ci
-on:
+name: docker
+
+# Builds and pushes the image only after code lands on main. Compile-time
+# breakage fails here too (the Dockerfile runs go build), so a bad merge
+# cannot ship an image.on:
   push:
     branches:
       - main

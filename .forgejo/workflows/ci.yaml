@@ -1,12 +1,9 @@
 name: ci
 
-# Runs on pull_request as well as push to main: gates that only run after the
-# merge are not gates. The toolchain comes from the flake, so this workflow
-# never names a version; `just check` is the single definition of what passes.
+# The pull_request gate is the only place checks run: a red PR cannot merge.
+# Post-merge, the docker workflow compiles the binary anyway, so re-running
+# the full check on main would just duplicate what the PR already proved.
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
