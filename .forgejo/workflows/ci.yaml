@@ -9,25 +9,9 @@ on:
 jobs:
   check:
     runs-on: native
-    env:
-      # The native runner's HOME is not writable, so every cache a tool reaches
-      # for is redirected into the workspace. XDG_CACHE_HOME covers nix's own
-      # eval cache and anything using os.UserCacheDir(); the Go caches follow.
-      XDG_CACHE_HOME: ${{ github.workspace }}/.cache
-      GOPATH: ${{ github.workspace }}/.gopath
-      GOCACHE: ${{ github.workspace }}/.gocache
-      GOMODCACHE: ${{ github.workspace }}/.gomodcache
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
       - name: Check
         run: nix develop --command just check
-
-      # Some tools create their caches read-only (Go's module cache does), which
-      # leaves the runner unable to delete the workspace at teardown. Hand write
-      # permission back so it can.
-      - name: Make caches removable
-        if: always()
-        shell: bash
-        run: chmod -R u+w .cache .gopath .gocache .gomodcache 2>/dev/null || true
