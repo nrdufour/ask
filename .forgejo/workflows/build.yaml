@@ -22,13 +22,17 @@ jobs:
   docker:
     runs-on: native
     steps:
+      # Full history and tags: Go stamps the version from them.
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set build tag
         shell: bash
         run: |
           echo "BUILD_TAG=main-${GITHUB_SHA:0:7}-$(date +%s)" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=$(git describe --tags --always)" >> $GITHUB_ENV
 
       - name: Set build timestamp
         shell: bash
@@ -56,6 +60,7 @@ jobs:
           push: true
           build-args: |
             IMAGE_REVISION=${{ github.sha }}
+            IMAGE_VERSION=${{ env.IMAGE_VERSION }}
             IMAGE_CREATED=${{ env.BUILD_TIME }}
           tags: |
             forge.internal/nemo/ask:latest

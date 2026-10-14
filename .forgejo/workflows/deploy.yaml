@@ -27,8 +27,11 @@ jobs:
   deploy:
     runs-on: native
     steps:
+      # Full history and tags: Go stamps the version from them.
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       # A deploy token scoped to the ask app: fly tokens create deploy -a ask
       - name: Deploy
@@ -37,4 +40,5 @@ jobs:
         run: |
           nix develop --command flyctl deploy --remote-only \
             --build-arg IMAGE_REVISION=${{ github.sha }} \
+            --build-arg IMAGE_VERSION="$(git describe --tags --always)" \
             --build-arg IMAGE_CREATED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
