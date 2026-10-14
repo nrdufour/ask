@@ -25,7 +25,7 @@ primary_region = 'iad'
     timeout = '5s'
 
 [[vm]]
-  memory = 512
+  memory = 256
   size = 'shared-cpu-1x'
 
 [processes]
