@@ -14,7 +14,7 @@ ARG IMAGE_URL=https://forge.internal/nemo/airport-swiss-knife
 ARG IMAGE_DOCUMENTATION=https://forge.internal/nemo/airport-swiss-knife
 # -----------------------------------------------------------------------------
 
-FROM docker.io/library/golang:1.26.9-alpine3.24 AS build
+FROM docker.io/library/golang:1.27.2-alpine3.24 AS build
 
 WORKDIR /ask
 
