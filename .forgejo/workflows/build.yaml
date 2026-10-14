@@ -9,6 +9,8 @@ on:
       - main
     paths-ignore:
       - '.forgejo/workflows/renovate.yaml'
+      - '.forgejo/workflows/deploy.yaml'
+      - 'fly.toml'
       - 'LICENSE'
       - 'README.md'
       - 'renovate.json5'
