@@ -22,6 +22,8 @@ type VersionResponse struct {
 
 type HealthResponse struct {
 	Status string `json:"status"`
+	// Tiles is the basemap's state: disabled, absent, updating, ready or failed.
+	Tiles string `json:"tiles"`
 }
 
 type CountryListResponse struct {

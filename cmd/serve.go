@@ -23,6 +23,7 @@ import (
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().IntP("port", "p", 8080, "Port to run the server on")
+	serveCmd.Flags().String("tiles", "", "path of the self-hosted basemap (PMTiles); kept up to date with `pmtiles` from PATH")
 	viper.BindPFlag("server.port", serveCmd.Flags().Lookup("port"))
 }
 
@@ -31,11 +32,12 @@ var serveCmd = &cobra.Command{
 	Short: "Start a http server",
 	Long:  `Start a http server for remote queries`,
 	Run: func(cmd *cobra.Command, args []string) {
-		doServe()
+		tiles, _ := cmd.Flags().GetString("tiles")
+		doServe(tiles)
 	},
 }
 
-func doServe() {
+func doServe(tiles string) {
 	if !repository.IsRepositoryDirectoryExists() {
 		fmt.Println("Warning! the repository doesn't exist!")
 		fmt.Println("Please, set it up with the `init` command")
@@ -43,7 +45,7 @@ func doServe() {
 	}
 
 	port := viper.GetInt("server.port")
-	srv, err := server.NewServer(port)
+	srv, err := server.NewServer(port, tiles)
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

@@ -31,6 +31,9 @@ type pageData struct {
 	DataDate     string
 	DataCommit   string
 
+	// Tiles is set when the self-hosted basemap is ready to serve.
+	Tiles bool
+
 	// For the airport page: the airport, or the code nothing matched.
 	Detail   *store.AirportDetail
 	NotFound string
@@ -102,6 +105,7 @@ func parsePages() (map[string]*template.Template, error) {
 
 func (s *Server) render(w http.ResponseWriter, name string, status int, data pageData) {
 	data.Version, data.AssetHash, data.Page = VERSION, s.assetHash, name
+	data.Tiles = s.tiles.status() == tilesReady
 
 	imports, err := s.store.ImportStatus()
 	if err != nil {

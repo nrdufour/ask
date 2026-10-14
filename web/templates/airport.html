@@ -141,6 +141,7 @@
 {{define "scripts"}}
 {{with .Detail}}
 <script src="/static/vendor/leaflet/leaflet.js"></script>
+{{if $.Tiles}}<script src="/static/vendor/protomaps-leaflet/protomaps-leaflet.js"></script>{{end}}
 <script>
 (function () {
     var detail = {{.}};

@@ -38,7 +38,7 @@ func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, HealthResponse{Status: "OK"})
+	writeJSON(w, HealthResponse{Status: "OK", Tiles: s.tiles.status()})
 }
 
 func (s *Server) airportSearchHandler(w http.ResponseWriter, r *http.Request) {
