@@ -75,8 +75,9 @@ func (t *tiles) stale() bool {
 }
 
 // refreshIfStale updates the basemap in the background when it is missing or
-// old. The deploy workflow polls /health until it is ready; that traffic
-// also keeps Fly from stopping the machine mid-download.
+// old. The deploy workflow polls /health until it is ready. The extract is
+// not resumable, so the machine must stay up meanwhile: fly.toml turns
+// auto-stop off.
 func (t *tiles) refreshIfStale(ctx context.Context) {
 	if t.path == "" || !t.stale() {
 		return

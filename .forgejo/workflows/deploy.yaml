@@ -44,8 +44,9 @@ jobs:
             --build-arg IMAGE_CREATED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
       # A new machine, or a basemap past four weeks, extracts the Protomaps
-      # build in the background. Polling keeps Fly from stopping the machine
-      # before it is done, and shows the result here.
+      # build in the background; this shows the result here. (The machine
+      # stays up because fly.toml turns auto-stop off, not because of this
+      # polling: Fly's proxy only counts requests in flight.)
       - name: Wait for the map tiles
         shell: bash
         run: |
