@@ -195,7 +195,12 @@
                 var draw = function () {
                     if (layer) map.removeLayer(layer);
                     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-                    layer = protomapsL.leafletLayer({ url: url, flavor: dark ? 'dark' : 'light', lang: 'en', attribution: attribution });
+                    // Past the archive's last zoom, draw its deepest tiles larger
+                    // rather than ask for tiles it doesn't have (blank map).
+                    layer = protomapsL.leafletLayer({
+                        url: url, flavor: dark ? 'dark' : 'light', lang: 'en', attribution: attribution,
+                        maxDataZoom: Number(document.body.dataset.tilesMaxZoom) || 12
+                    });
                     layer.addTo(map);
                     layer.bringToBack();
                 };
