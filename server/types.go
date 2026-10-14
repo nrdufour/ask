@@ -17,7 +17,7 @@ type Airport struct {
 	Name             string  `json:"name"`
 	LatitudeDeg      float64 `json:"latitude_deg"`
 	LongitudeDeg     float64 `json:"longitude_deg"`
-	ElevationFt      int     `json:"elevation_ft"`
+	ElevationFt      *int    `json:"elevation_ft"`
 	Continent        string  `json:"continent"`
 	IsoCountry       string  `json:"iso_country"`
 	IsoRegion        string  `json:"iso_region"`
@@ -44,6 +44,8 @@ type Country struct {
 type SearchResponse struct {
 	Airports []Airport `json:"airports"`
 	Count    int       `json:"count"`
+	// Truncated is set when more airports matched than the limit allowed.
+	Truncated bool `json:"truncated"`
 }
 
 type CountryListResponse struct {
@@ -71,15 +73,14 @@ type AirportTimeResponse struct {
 	UTCOffset string `json:"utc_offset"`
 }
 
-type DistanceRequest struct {
-	DepartureICAO   string `json:"departure_icao"`
-	DestinationICAO string `json:"destination_icao"`
-}
-
 type DistanceResponse struct {
 	DepartureAirport   Airport `json:"departure_airport"`
 	DestinationAirport Airport `json:"destination_airport"`
 	DistanceNM         float64 `json:"distance_nm"`
+	DistanceKM         float64 `json:"distance_km"`
+	DistanceSM         float64 `json:"distance_sm"`
+	// InitialBearingDeg is the true course at departure along the great circle.
+	InitialBearingDeg float64 `json:"initial_bearing_deg"`
 }
 
 type ReachableAirport struct {

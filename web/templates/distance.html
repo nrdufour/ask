@@ -1,0 +1,233 @@
+{{define "title"}}Distance · ASK{{end}}
+
+{{define "head"}}
+    <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+{{end}}
+
+{{define "content"}}
+<h1 class="page-title">Distance</h1>
+<p class="page-lede">Great-circle distance and initial true course between two airports. Type a code, or a name and pick from the suggestions.</p>
+
+<form id="distanceForm">
+    <div class="form-row">
+        <div class="field">
+            <label for="from">From</label>
+            <input type="text" id="from" name="from" class="input-code" list="fromList" placeholder="KJFK" autocomplete="off" required>
+            <datalist id="fromList"></datalist>
+        </div>
+        <div class="field">
+            <label for="to">To</label>
+            <input type="text" id="to" name="to" class="input-code" list="toList" placeholder="EGLL" autocomplete="off" required>
+            <datalist id="toList"></datalist>
+        </div>
+        <button type="submit" class="btn" id="calculateButton">Measure</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+</form>
+
+<section id="results" hidden aria-labelledby="routeLabel">
+    <h2 class="visually-hidden" id="routeLabel">Route</h2>
+    <div class="route">
+        <span id="fromSign"></span>
+        <div class="route-leg"><div class="route-nm"><span id="distanceNM"></span><small>NM</small></div></div>
+        <span id="toSign"></span>
+    </div>
+    <div class="route-meta">
+        <span><span class="num" id="distanceKM"></span> km</span>
+        <span><span class="num" id="distanceSM"></span> statute miles</span>
+        <span>Initial true course
+            <svg class="course-arrow" id="courseArrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1l4.5 13L8 11l-4.5 3z" fill="currentColor"/></svg>
+            <span class="num" id="course"></span></span>
+    </div>
+
+    <div class="endpoints">
+        <div class="endpoint" id="fromCard"></div>
+        <div class="endpoint" id="toCard"></div>
+    </div>
+
+    <div class="map" id="map"></div>
+</section>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+    var form = document.getElementById('distanceForm');
+    var fromInput = document.getElementById('from');
+    var toInput = document.getElementById('to');
+    var button = document.getElementById('calculateButton');
+    var status = document.getElementById('status');
+    var map = null;
+    var line = null;
+
+    window.addEventListener('theme-changed', function () {
+        if (line) line.setStyle({ color: ask.cssVar('--magenta') });
+    });
+
+    ask.autocomplete(fromInput);
+    ask.autocomplete(toInput);
+
+    function coord(value, pos, neg) {
+        return Math.abs(value).toFixed(4) + '° ' + (value >= 0 ? pos : neg);
+    }
+
+    function cardHTML(heading, ap) {
+        return '<h3>' + heading + '</h3>' +
+            '<p class="airport-name">' + ask.esc(ap.name) + '</p>' +
+            '<dl class="facts">' +
+                '<dt>Place</dt><dd>' + (ask.place(ap) || '–') + '</dd>' +
+                '<dt>Codes</dt><dd class="mono">' + ask.esc([ap.icao_code || ap.ident, ap.iata_code].filter(Boolean).join(' / ')) + '</dd>' +
+                '<dt>Type</dt><dd>' + ask.esc(ask.typeLabel(ap.type)) + '</dd>' +
+                '<dt>Elevation</dt><dd class="num">' + (ap.elevation_ft == null ? '–' : ap.elevation_ft.toLocaleString('en') + ' ft') + '</dd>' +
+                '<dt>Position</dt><dd class="num">' + coord(ap.latitude_deg, 'N', 'S') + ', ' + coord(ap.longitude_deg, 'E', 'W') + '</dd>' +
+                '<dt>Local time</dt><dd class="local-time">…</dd>' +
+            '</dl>';
+    }
+
+    function fillLocalTime(card, ap) {
+        var el = card.querySelector('.local-time');
+        ask.localTime(ask.lookupCode(ap)).then(function (t) { el.textContent = t; })
+            .catch(function () { el.textContent = 'Unknown'; });
+    }
+
+    // Points along the great circle, with longitudes unwrapped so that a
+    // route across the antimeridian stays continuous instead of spanning
+    // the whole map.
+    function greatCircle(lat1, lng1, lat2, lng2, n) {
+        var toRad = Math.PI / 180;
+        var p1 = lat1 * toRad, p2 = lat2 * toRad, l1 = lng1 * toRad, l2 = lng2 * toRad;
+        var d = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin((p2 - p1) / 2), 2) +
+            Math.cos(p1) * Math.cos(p2) * Math.pow(Math.sin((l2 - l1) / 2), 2)));
+        var points = [];
+        var prevLng = lng1;
+        for (var i = 0; i <= n; i++) {
+            var f = i / n;
+            var a = Math.sin((1 - f) * d) / Math.sin(d);
+            var b = Math.sin(f * d) / Math.sin(d);
+            var x = a * Math.cos(p1) * Math.cos(l1) + b * Math.cos(p2) * Math.cos(l2);
+            var y = a * Math.cos(p1) * Math.sin(l1) + b * Math.cos(p2) * Math.sin(l2);
+            var z = a * Math.sin(p1) + b * Math.sin(p2);
+            var lat = Math.atan2(z, Math.sqrt(x * x + y * y)) / toRad;
+            var lng = Math.atan2(y, x) / toRad;
+            while (lng - prevLng > 180) lng -= 360;
+            while (lng - prevLng < -180) lng += 360;
+            points.push([lat, lng]);
+            prevLng = lng;
+        }
+        return points;
+    }
+
+    function pin(ap) {
+        return L.divIcon({
+            html: '<span class="map-pin">' + ask.esc(ap.icao_code || ap.ident) + '</span>',
+            className: 'leaflet-div-icon-clean',
+            iconSize: [0, 0]
+        });
+    }
+
+    function popup(ap) {
+        return '<strong>' + ask.esc(ap.name) + '</strong><br>' + ask.place(ap);
+    }
+
+    function drawMap(data) {
+        if (map) map.remove();
+        map = L.map('map', { worldCopyJump: false });
+        ask.addTiles(map);
+
+        var dep = data.departure_airport, dest = data.destination_airport;
+        var points = dep.latitude_deg === dest.latitude_deg && dep.longitude_deg === dest.longitude_deg
+            ? [[dep.latitude_deg, dep.longitude_deg], [dest.latitude_deg, dest.longitude_deg]]
+            : greatCircle(dep.latitude_deg, dep.longitude_deg, dest.latitude_deg, dest.longitude_deg, 128);
+        var end = points[points.length - 1];
+
+        line = L.polyline(points, { color: ask.cssVar('--magenta'), weight: 3, opacity: 0.95 }).addTo(map);
+        L.marker(points[0], { icon: pin(dep), keyboard: true, title: dep.name }).bindPopup(popup(dep)).addTo(map);
+        L.marker(end, { icon: pin(dest), keyboard: true, title: dest.name }).bindPopup(popup(dest)).addTo(map);
+        map.fitBounds(line.getBounds(), { padding: [48, 48], maxZoom: 9 });
+
+        // Draw the magenta line once, from departure to destination.
+        var path = line.getElement();
+        if (path && path.getTotalLength) {
+            var length = path.getTotalLength();
+            path.style.strokeDasharray = length;
+            path.style.strokeDashoffset = length;
+            path.classList.add('route-line-animated');
+        }
+    }
+
+    function show(data) {
+        var dep = data.departure_airport, dest = data.destination_airport;
+        document.getElementById('fromSign').innerHTML = ask.sign(dep, 'sign-lg');
+        document.getElementById('toSign').innerHTML = ask.sign(dest, 'sign-lg');
+        document.getElementById('distanceNM').textContent = Math.round(data.distance_nm).toLocaleString('en');
+        document.getElementById('distanceKM').textContent = Math.round(data.distance_km).toLocaleString('en');
+        document.getElementById('distanceSM').textContent = Math.round(data.distance_sm).toLocaleString('en');
+        document.getElementById('course').textContent = String(Math.round(data.initial_bearing_deg) % 360).padStart(3, '0') + '°';
+        document.getElementById('courseArrow').style.transform = 'rotate(' + data.initial_bearing_deg + 'deg)';
+
+        var fromCard = document.getElementById('fromCard');
+        var toCard = document.getElementById('toCard');
+        fromCard.innerHTML = cardHTML('From', dep);
+        toCard.innerHTML = cardHTML('To', dest);
+        fillLocalTime(fromCard, dep);
+        fillLocalTime(toCard, dest);
+
+        document.getElementById('results').hidden = false;
+        drawMap(data);
+    }
+
+    async function measure(from, to) {
+        button.disabled = true;
+        ask.setStatus(status, 'Measuring…');
+        try {
+            var data = await ask.fetchJSON('/api/airport/distance?departure=' + encodeURIComponent(from) +
+                '&destination=' + encodeURIComponent(to));
+            ask.setStatus(status, '');
+            show(data);
+        } catch (err) {
+            ask.setStatus(status, err.message, true);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function validate(from, to) {
+        if (!/^[A-Z]{4}$/.test(from) || !/^[A-Z]{4}$/.test(to)) {
+            return 'Enter two 4-letter ICAO codes, or pick airports from the suggestions.';
+        }
+        if (from === to) return 'Pick two different airports.';
+        return '';
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var from = ask.normalizeCode(fromInput.value);
+        var to = ask.normalizeCode(toInput.value);
+        fromInput.value = from;
+        toInput.value = to;
+        var problem = validate(from, to);
+        if (problem) {
+            ask.setStatus(status, problem, true);
+            return;
+        }
+        history.pushState(null, '', '?' + new URLSearchParams({ from: from, to: to }));
+        measure(from, to);
+    });
+
+    // /distance?from=LFPG&to=KJFK measures straight away; ?from= alone prefills.
+    function fromURL() {
+        var params = new URLSearchParams(location.search);
+        fromInput.value = (params.get('from') || '').toUpperCase();
+        toInput.value = (params.get('to') || '').toUpperCase();
+        if (fromInput.value && toInput.value && !validate(fromInput.value, toInput.value)) {
+            measure(fromInput.value, toInput.value);
+        } else {
+            (fromInput.value ? toInput : fromInput).focus();
+        }
+    }
+    window.addEventListener('popstate', fromURL);
+    fromURL();
+})();
+</script>
+{{end}}

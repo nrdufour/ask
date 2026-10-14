@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -36,9 +37,9 @@ func (s *Server) distanceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get departure airport
-	departureAirport, err := s.getAirportByICAO(departureICAO)
+	departureAirport, err := s.getAirportByCode(departureICAO)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Departure airport not found", http.StatusNotFound)
 			return
 		}
@@ -47,9 +48,9 @@ func (s *Server) distanceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get destination airport
-	destinationAirport, err := s.getAirportByICAO(destinationICAO)
+	destinationAirport, err := s.getAirportByCode(destinationICAO)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Destination airport not found", http.StatusNotFound)
 			return
 		}
@@ -63,11 +64,18 @@ func (s *Server) distanceHandler(w http.ResponseWriter, r *http.Request) {
 		destinationAirport.LatitudeDeg, destinationAirport.LongitudeDeg,
 	)
 
-	// Create response
+	bearing := initialBearing(
+		departureAirport.LatitudeDeg, departureAirport.LongitudeDeg,
+		destinationAirport.LatitudeDeg, destinationAirport.LongitudeDeg,
+	)
+
 	response := DistanceResponse{
 		DepartureAirport:   *departureAirport,
 		DestinationAirport: *destinationAirport,
 		DistanceNM:         distance,
+		DistanceKM:         distance * nmToKM,
+		DistanceSM:         distance * nmToSM,
+		InitialBearingDeg:  roundTo(bearing, 1),
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

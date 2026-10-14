@@ -4,7 +4,7 @@
 ARG IMAGE_SOURCE=https://forge.internal/nemo/airport-swiss-knife
 ARG IMAGE_REVISION=unknown
 ARG IMAGE_CREATED=unknown
-ARG IMAGE_VERSION=0.1.0
+ARG IMAGE_VERSION=0.2.2
 ARG IMAGE_TITLE=airport-swiss-knife
 ARG IMAGE_DESCRIPTION="A Go CLI tool that downloads airport data from ourairports.com and makes it searchable via a web interface"
 ARG IMAGE_AUTHORS=nemo
@@ -21,6 +21,10 @@ WORKDIR /ask
 RUN apk update && apk add --no-cache ca-certificates git gcc musl-dev sqlite-dev
 COPY . .
 RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags="-linkmode external -extldflags '-static' -s -w" -o ask
+
+# Bake the airport database into the image, so a cold start serves at once
+# instead of cloning and importing first. The data is as fresh as the build.
+RUN ./ask init -r /ask-data
 
 # -----------------------------------------------------------------------------
 FROM alpine:3.24
@@ -42,15 +46,11 @@ RUN apk --no-cache add ca-certificates tzdata && \
     addgroup -g 1000 appgroup && \
     adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 
-# Create necessary directories with proper permissions
-RUN mkdir -p /app /home/appuser/.ask && \
-    chown -R appuser:appgroup /app /home/appuser
-
-# Copy the binary and startup script
+# Templates and static files are embedded in the binary; only the database
+# sits beside it.
 COPY --from=build --chown=appuser:appgroup /ask/ask /app/ask
+COPY --from=build --chown=appuser:appgroup /ask-data/db /home/appuser/.ask/db
 COPY --chown=appuser:appgroup entrypoint.sh /app/entrypoint.sh
-COPY --chown=appuser:appgroup templates /app/templates
-COPY --chown=appuser:appgroup static /app/static
 
 # Make the startup script executable
 RUN chmod +x /app/entrypoint.sh

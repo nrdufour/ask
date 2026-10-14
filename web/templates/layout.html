@@ -1,0 +1,44 @@
+{{define "layout" -}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{template "title" .}}</title>
+    <meta name="description" content="Search OurAirports data, measure great-circle distances and find airports in range.">
+    <link rel="preload" href="/static/fonts/b612-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/static/app.css?v={{.AssetHash}}">
+    {{- block "head" .}}{{end}}
+    <script>(function(){var t=localStorage.getItem('ask-theme')||'system';document.documentElement.setAttribute('data-theme',t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t)})();</script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a href="/" class="brand"><span class="sign">ASK</span> Airport Swiss Knife</a>
+            <nav class="nav" aria-label="Tools">
+                <a href="/airports"{{if eq .Page "airports"}} aria-current="page"{{end}}>Search</a>
+                <a href="/distance"{{if eq .Page "distance"}} aria-current="page"{{end}}>Distance</a>
+                <a href="/reachable"{{if eq .Page "reachable"}} aria-current="page"{{end}}>In range</a>
+            </nav>
+            <div class="theme-switcher" role="group" aria-label="Color theme">
+                <button type="button" class="theme-btn" data-theme="light" aria-label="Light theme" title="Light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v2.5M12 20v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M1.5 12H4M20 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg></button>
+                <button type="button" class="theme-btn" data-theme="system" aria-label="System theme" title="System"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+                <button type="button" class="theme-btn" data-theme="dark" aria-label="Dark theme" title="Dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {{template "content" .}}
+    </main>
+
+    <footer class="site-footer">
+        <span>Airport data from <a href="https://ourairports.com/">OurAirports</a>{{with .DataDate}}, snapshot of {{.}}{{end}}{{with .DataCommit}} (<a href="https://github.com/davidmegginson/ourairports-data/commit/{{.}}" class="mono">{{slice . 0 7}}</a>){{end}}</span>
+        <span>Version {{.Version}}</span>
+    </footer>
+
+    <script src="/static/app.js?v={{.AssetHash}}"></script>
+    {{- block "scripts" .}}{{end}}
+</body>
+</html>
+{{- end}}

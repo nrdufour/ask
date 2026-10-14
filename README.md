@@ -1,12 +1,10 @@
 # Airport Swiss Knife (ask)
 
-Simple cli tool to query and serve data from ourairports.com.
+Look up any airport in the [OurAirports](https://ourairports.com/) dataset, measure great-circle distances between airports, and find every airport within range of an origin.
 
-## TODO
+```bash
+./ask init     # download the data and build the local database
+./ask serve    # web UI and JSON API on :8080
+```
 
-Commands to implement:
-
-+ version: show the version (implemented)
-+ init: setup and download the data locally and create a local database if not present
-+ serve: start a http server that will allow queries remotely
-+ query: main command to query (from there, sub commands will be added)
+Running at <https://ask.fly.dev>. See [CLAUDE.md](CLAUDE.md) for the layout and API.

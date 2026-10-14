@@ -3,67 +3,94 @@ package server
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
+	"ask/db"
+	"ask/web"
+
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/spf13/viper"
+	"github.com/ringsaturn/tzf/v2"
 )
 
 type Server struct {
-	port   int
-	router *mux.Router
-	server *http.Server
-	db     *sql.DB
+	port      int
+	mux       *http.ServeMux
+	server    *http.Server
+	db        *sql.DB
+	tzFinder  tzf.F
+	pages     map[string]*template.Template
+	assetHash string
 }
 
-func NewServer(port int) *Server {
+func NewServer(port int) (*Server, error) {
 	s := &Server{
-		port:   port,
-		router: mux.NewRouter(),
+		port: port,
+		mux:  http.NewServeMux(),
 	}
 
-	// Initialize database connection
-	if err := s.initDatabase(); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	database, err := sql.Open("sqlite3", "file:"+db.Path()+"?mode=ro")
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+	if err := database.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+	s.db = database
+
+	s.tzFinder, err = tzf.NewDefaultFinder()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize timezone finder: %w", err)
+	}
+
+	s.pages, err = parsePages()
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse templates: %w", err)
+	}
+
+	s.assetHash, err = assetHash()
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash static assets: %w", err)
 	}
 
 	s.setupRoutes()
 
 	s.server = &http.Server{
 		Addr:         ":" + strconv.Itoa(port),
-		Handler:      LoggingMiddleware(s.router),
+		Handler:      LoggingMiddleware(s.mux),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
-	return s
+	return s, nil
 }
 
 func (s *Server) setupRoutes() {
 	// API routes
-	s.router.HandleFunc("/version", s.versionHandler).Methods("GET")
-	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
-	s.router.HandleFunc("/api/airport/search", s.airportSearchHandler).Methods("GET")
-	s.router.HandleFunc("/api/airport/distance", s.distanceHandler).Methods("GET")
-	s.router.HandleFunc("/api/airport/time", s.airportTimeHandler).Methods("GET")
-	s.router.HandleFunc("/api/airport/reachable", s.reachableHandler).Methods("GET")
-	s.router.HandleFunc("/api/country", s.countryListHandler).Methods("GET")
-	s.router.HandleFunc("/api/import/status", s.importStatusHandler).Methods("GET")
+	s.mux.HandleFunc("GET /version", s.versionHandler)
+	s.mux.HandleFunc("GET /health", s.healthHandler)
+	s.mux.HandleFunc("GET /api/airport/search", s.airportSearchHandler)
+	s.mux.HandleFunc("GET /api/airport/distance", s.distanceHandler)
+	s.mux.HandleFunc("GET /api/airport/time", s.airportTimeHandler)
+	s.mux.HandleFunc("GET /api/airport/reachable", s.reachableHandler)
+	s.mux.HandleFunc("GET /api/country", s.countryListHandler)
+	s.mux.HandleFunc("GET /api/import/status", s.importStatusHandler)
 
 	// Static files
-	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	static, _ := fs.Sub(web.FS, "static")
+	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
 
 	// Web routes
-	s.router.HandleFunc("/", s.indexPageHandler).Methods("GET")
-	s.router.HandleFunc("/airports", s.airportsPageHandler).Methods("GET")
-	s.router.HandleFunc("/distance", s.distancePageHandler).Methods("GET")
-	s.router.HandleFunc("/reachable", s.reachablePageHandler).Methods("GET")
+	s.mux.HandleFunc("GET /{$}", s.pageHandler("index"))
+	s.mux.HandleFunc("GET /airports", s.pageHandler("airports"))
+	s.mux.HandleFunc("GET /distance", s.pageHandler("distance"))
+	s.mux.HandleFunc("GET /reachable", s.pageHandler("reachable"))
 }
 
 func (s *Server) Start() error {
@@ -71,29 +98,9 @@ func (s *Server) Start() error {
 	return s.server.ListenAndServe()
 }
 
-func (s *Server) initDatabase() error {
-	repoDir := viper.GetString("repository")
-	dbDir := filepath.Join(repoDir, viper.GetString("db"))
-	dbPath := filepath.Join(dbDir, "ask.db")
-
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return err
-	}
-
-	// Test the connection
-	if err := db.Ping(); err != nil {
-		return err
-	}
-
-	s.db = db
-	return nil
-}
-
 func (s *Server) Stop(ctx context.Context) error {
 	log.Println("Stopping server...")
-	if s.db != nil {
-		s.db.Close()
-	}
-	return s.server.Shutdown(ctx)
+	err := s.server.Shutdown(ctx)
+	s.db.Close()
+	return err
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -40,9 +41,9 @@ func (s *Server) reachableHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	origin, err := s.getAirportByICAO(icao)
+	origin, err := s.getAirportByCode(icao)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Airport not found", http.StatusNotFound)
 			return
 		}

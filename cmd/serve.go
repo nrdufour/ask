@@ -43,7 +43,10 @@ func doServe() {
 	}
 
 	port := viper.GetInt("server.port")
-	srv := server.NewServer(port)
+	srv, err := server.NewServer(port)
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 
 	go func() {
 		if err := srv.Start(); err != nil && err != http.ErrServerClosed {

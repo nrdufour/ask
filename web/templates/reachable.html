@@ -1,0 +1,248 @@
+{{define "title"}}Airports in range · ASK{{end}}
+
+{{define "head"}}
+    <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+{{end}}
+
+{{define "content"}}
+<h1 class="page-title">Airports in range</h1>
+<p class="page-lede">Every airport within a great-circle distance of an origin, nearest first.</p>
+
+<form id="reachableForm">
+    <div class="form-row">
+        <div class="field">
+            <label for="icao">Origin</label>
+            <input type="text" id="icao" name="icao" class="input-code" list="icaoList" placeholder="LFPG" autocomplete="off" required>
+            <datalist id="icaoList"></datalist>
+        </div>
+        <div class="field">
+            <label for="range">Range in NM</label>
+            <input type="number" id="range" name="range" placeholder="500" min="1" max="10800" step="any" inputmode="decimal" required>
+        </div>
+        <button type="submit" class="btn" id="searchButton">Find airports</button>
+    </div>
+    <div class="filters">
+        <p class="field-label" id="typesLabel">Include</p>
+        <div class="chips" role="group" aria-labelledby="typesLabel">
+            <button type="button" class="chip" data-type="large_airport" aria-pressed="true">Large airports</button>
+            <button type="button" class="chip" data-type="medium_airport" aria-pressed="true">Medium airports</button>
+            <button type="button" class="chip" data-type="small_airport" aria-pressed="false">Small airports</button>
+            <button type="button" class="chip" data-type="heliport" aria-pressed="false">Heliports</button>
+            <button type="button" class="chip" data-type="seaplane_base" aria-pressed="false">Seaplane bases</button>
+            <button type="button" class="chip" data-type="balloonport" aria-pressed="false">Balloonports</button>
+            <button type="button" class="chip" data-type="closed" aria-pressed="false">Closed</button>
+        </div>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+</form>
+
+<section id="results" hidden>
+    <p class="range-summary" id="summary"></p>
+    <div class="map-layout">
+        <div class="map" id="map"></div>
+        <ol class="range-list" id="airportList" aria-label="Airports in range, nearest first"></ol>
+    </div>
+</section>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+    var DEFAULT_TYPES = 'large_airport,medium_airport';
+    var form = document.getElementById('reachableForm');
+    var icaoInput = document.getElementById('icao');
+    var rangeInput = document.getElementById('range');
+    var button = document.getElementById('searchButton');
+    var status = document.getElementById('status');
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+    var map = null;
+    var ring = null;
+    var dots = [];
+
+    ask.autocomplete(icaoInput);
+
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chip.setAttribute('aria-pressed', chip.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+        });
+    });
+
+    function selectedTypes() {
+        return chips.filter(function (c) { return c.getAttribute('aria-pressed') === 'true'; })
+            .map(function (c) { return c.dataset.type; });
+    }
+
+    function setTypes(types) {
+        chips.forEach(function (c) {
+            c.setAttribute('aria-pressed', types.indexOf(c.dataset.type) >= 0 ? 'true' : 'false');
+        });
+    }
+
+    window.addEventListener('theme-changed', function () {
+        if (ring) ring.setStyle({ color: ask.cssVar('--magenta'), fillColor: ask.cssVar('--magenta') });
+        dots.forEach(function (d) { d.setStyle({ fillColor: ask.cssVar('--blue'), color: ask.cssVar('--surface') }); });
+    });
+
+    // The circle of rangeNM around the origin on the sphere, unwrapped
+    // around the origin's longitude.
+    function geodesicRing(lat, lng, rangeNM) {
+        var toRad = Math.PI / 180;
+        var d = rangeNM / 3440.065, p1 = lat * toRad, l1 = lng * toRad;
+        var points = [];
+        for (var i = 0; i <= 180; i++) {
+            var theta = i * 2 * toRad;
+            var p2 = Math.asin(Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(theta));
+            var l2 = l1 + Math.atan2(Math.sin(theta) * Math.sin(d) * Math.cos(p1), Math.cos(d) - Math.sin(p1) * Math.sin(p2));
+            points.push([p2 / toRad, l2 / toRad]);
+        }
+        return points;
+    }
+
+    // Shift a longitude by whole turns to sit within 180° of the origin, so
+    // airports across the antimeridian plot next to it.
+    function nearLng(lng, originLng) {
+        while (lng - originLng > 180) lng -= 360;
+        while (lng - originLng < -180) lng += 360;
+        return lng;
+    }
+
+    function nm(x) {
+        return x.toLocaleString('en', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    }
+
+    function popup(ap, dist) {
+        return '<strong>' + ask.esc(ap.name) + '</strong><br>' + ask.place(ap) +
+            (dist == null ? '' : '<br>' + nm(dist) + ' NM');
+    }
+
+    function drawMap(data) {
+        if (map) map.remove();
+        map = L.map('map', { preferCanvas: true });
+        ask.addTiles(map);
+        dots = [];
+
+        var o = data.origin_airport;
+        ring = L.polygon(geodesicRing(o.latitude_deg, o.longitude_deg, data.range_nm), {
+            color: ask.cssVar('--magenta'), weight: 2, dashArray: '6 6',
+            fillColor: ask.cssVar('--magenta'), fillOpacity: 0.04, interactive: false
+        }).addTo(map);
+
+        data.airports.forEach(function (item) {
+            var ap = item.airport;
+            dots.push(L.circleMarker([ap.latitude_deg, nearLng(ap.longitude_deg, o.longitude_deg)], {
+                radius: 5, weight: 1.5, color: ask.cssVar('--surface'),
+                fillColor: ask.cssVar('--blue'), fillOpacity: 0.9
+            }).bindPopup(popup(ap, item.distance_nm)).addTo(map));
+        });
+
+        L.marker([o.latitude_deg, o.longitude_deg], {
+            icon: L.divIcon({ html: '<span class="map-pin">' + ask.esc(o.icao_code || o.ident) + '</span>', className: 'leaflet-div-icon-clean', iconSize: [0, 0] }),
+            title: o.name, zIndexOffset: 1000
+        }).bindPopup(popup(o)).addTo(map);
+
+        // A ring around a pole spans every longitude, and reaches latitudes
+        // Web Mercator cannot show: frame the airports found instead.
+        var b = ring.getBounds();
+        if (b.getEast() - b.getWest() >= 359 && dots.length) {
+            b = L.featureGroup(dots).getBounds().extend([o.latitude_deg, o.longitude_deg]);
+        }
+        map.fitBounds(b, { padding: [24, 24] });
+    }
+
+    function buildList(data) {
+        var list = document.getElementById('airportList');
+        if (data.count === 0) {
+            list.innerHTML = '<li class="empty">No airport of the selected types is in range. Widen the range or include more types.</li>';
+            return;
+        }
+        list.innerHTML = data.airports.map(function (item, i) {
+            var ap = item.airport;
+            return '<li><button type="button" data-index="' + i + '">' +
+                '<span class="airport-name">' + ask.esc(ap.name) + '</span>' +
+                '<span class="dist">' + nm(item.distance_nm) + ' NM</span>' +
+                '<span class="airport-sub"><span class="mono">' + ask.esc(ap.icao_code || ap.ident) + '</span>' +
+                (ask.place(ap) ? ', ' + ask.place(ap) : '') + '</span>' +
+                '</button></li>';
+        }).join('');
+    }
+
+    document.getElementById('airportList').addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-index]');
+        if (!btn) return;
+        var dot = dots[Number(btn.dataset.index)];
+        map.setView(dot.getLatLng(), Math.max(map.getZoom(), 8));
+        dot.openPopup();
+    });
+
+    function show(data) {
+        var o = data.origin_airport;
+        var count = data.count === 1 ? '1 airport' : data.count.toLocaleString('en') + ' airports';
+        document.getElementById('summary').innerHTML = '<strong>' + count + '</strong> within <strong>' +
+            data.range_nm.toLocaleString('en') + ' NM</strong> of ' + ask.sign(o) + ' ' + ask.esc(o.name) +
+            '. <span class="origin-time"></span>';
+        ask.localTime(ask.lookupCode(o)).then(function (t) {
+            document.querySelector('.origin-time').textContent = 'Local time there: ' + t + '.';
+        }).catch(function () {});
+
+        buildList(data);
+        document.getElementById('results').hidden = false;
+        drawMap(data);
+    }
+
+    async function find(icao, range, types) {
+        button.disabled = true;
+        ask.setStatus(status, 'Finding airports…');
+        try {
+            var url = '/api/airport/reachable?icao=' + encodeURIComponent(icao) + '&range=' + encodeURIComponent(range);
+            if (types.length) url += '&type=' + encodeURIComponent(types.join(','));
+            var data = await ask.fetchJSON(url);
+            ask.setStatus(status, '');
+            show(data);
+        } catch (err) {
+            ask.setStatus(status, err.message, true);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function validate(icao, range) {
+        if (!/^[A-Z]{4}$/.test(icao)) return 'Enter a 4-letter ICAO code, or pick an airport from the suggestions.';
+        var n = parseFloat(range);
+        if (!(n > 0 && n <= 10800)) return 'Enter a range from 1 to 10,800 NM, half the way around the Earth.';
+        return '';
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var icao = ask.normalizeCode(icaoInput.value);
+        icaoInput.value = icao;
+        var range = rangeInput.value.trim();
+        var problem = validate(icao, range);
+        if (problem) {
+            ask.setStatus(status, problem, true);
+            return;
+        }
+        var types = selectedTypes();
+        history.pushState(null, '', '?' + new URLSearchParams({ icao: icao, range: range, type: types.join(',') }));
+        find(icao, range, types);
+    });
+
+    // /reachable?icao=LFPG&range=300&type=large_airport runs straight away;
+    // ?icao= alone prefills the origin.
+    function fromURL() {
+        var params = new URLSearchParams(location.search);
+        icaoInput.value = (params.get('icao') || '').toUpperCase();
+        rangeInput.value = params.get('range') || '';
+        setTypes((params.has('type') ? params.get('type') : DEFAULT_TYPES).split(','));
+        if (!validate(icaoInput.value, rangeInput.value)) {
+            find(icaoInput.value, rangeInput.value, selectedTypes());
+        } else {
+            (icaoInput.value ? rangeInput : icaoInput).focus();
+        }
+    }
+    window.addEventListener('popstate', fromURL);
+    fromURL();
+})();
+</script>
+{{end}}
