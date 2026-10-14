@@ -28,6 +28,57 @@
         if (preference() === 'system') applyTheme('system');
     });
 
+    // Navigation feedback. Pages render on the server, so a slow one (a cold
+    // start, a busy machine) shows nothing until it arrives: say so on the
+    // page being left. A bar starts at once; a spinner joins if the wait
+    // lasts.
+    var loader = null;
+    var loaderTimer = null;
+
+    function showLoading(label) {
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.className = 'nav-loading';
+            loader.setAttribute('role', 'status');
+            loader.innerHTML = '<div class="nav-loading-bar"></div>' +
+                '<div class="nav-loading-panel"><span class="nav-loading-spinner" aria-hidden="true"></span>' +
+                '<span class="nav-loading-label"></span></div>';
+            document.body.appendChild(loader);
+        }
+        loader.querySelector('.nav-loading-label').textContent = label;
+        loader.classList.add('active');
+        clearTimeout(loaderTimer);
+        loaderTimer = setTimeout(function () { loader.classList.add('slow'); }, 400);
+    }
+
+    function hideLoading() {
+        clearTimeout(loaderTimer);
+        if (loader) loader.classList.remove('active', 'slow');
+    }
+
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[href]');
+        if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (a.target && a.target !== '_self') return;
+        var url = new URL(a.href, location.href);
+        if (url.origin !== location.origin || a.hasAttribute('download')) return;
+        // Same page, different hash: no navigation.
+        if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
+        var m = /^\/airport\/([^/]+)$/.exec(url.pathname);
+        showLoading(m ? 'Loading ' + decodeURIComponent(m[1]).toUpperCase() + '\u2026' : 'Loading\u2026');
+    });
+
+    // Forms that navigate (the home page search); pages that answer with
+    // fetch prevent the default and keep their own status line.
+    document.addEventListener('submit', function (e) {
+        setTimeout(function () {
+            if (!e.defaultPrevented) showLoading('Searching\u2026');
+        }, 0);
+    });
+
+    // Back and forward restore pages from the cache, loader included.
+    window.addEventListener('pageshow', hideLoading);
+
     var TYPE_LABELS = {
         large_airport: 'Large airport',
         medium_airport: 'Medium airport',
