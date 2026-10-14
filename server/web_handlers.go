@@ -63,7 +63,7 @@ func parsePages() (map[string]*template.Template, error) {
 func (s *Server) render(w http.ResponseWriter, name string) {
 	data := pageData{Version: VERSION, AssetHash: s.assetHash, Page: name}
 
-	status, err := s.importStatus()
+	status, err := s.store.ImportStatus()
 	if err != nil {
 		log.Printf("reading import status: %v", err)
 	}

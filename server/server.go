@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -12,18 +11,15 @@ import (
 	"time"
 
 	"ask/db"
+	"ask/store"
 	"ask/web"
-
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/ringsaturn/tzf/v2"
 )
 
 type Server struct {
 	port      int
 	mux       *http.ServeMux
 	server    *http.Server
-	db        *sql.DB
-	tzFinder  tzf.F
+	store     *store.Store
 	pages     map[string]*template.Template
 	assetHash string
 }
@@ -34,19 +30,11 @@ func NewServer(port int) (*Server, error) {
 		mux:  http.NewServeMux(),
 	}
 
-	database, err := sql.Open("sqlite3", "file:"+db.Path()+"?mode=ro")
+	st, err := store.Open(db.Path())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	if err := database.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
-	}
-	s.db = database
-
-	s.tzFinder, err = tzf.NewDefaultFinder()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize timezone finder: %w", err)
-	}
+	s.store = st
 
 	s.pages, err = parsePages()
 	if err != nil {
@@ -101,6 +89,6 @@ func (s *Server) Start() error {
 func (s *Server) Stop(ctx context.Context) error {
 	log.Println("Stopping server...")
 	err := s.server.Shutdown(ctx)
-	s.db.Close()
+	s.store.Close()
 	return err
 }

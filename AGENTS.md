@@ -9,20 +9,26 @@ just check        # what CI runs: gofmt + nixfmt, vet, staticcheck, tests, build
 just run          # build and serve on :8080
 ./ask init        # clone/pull the data and rebuild the database
 ./ask serve -p 8080
+./ask search heathrow [--country GB] [--limit 20]
+./ask distance LFPG KJFK
+./ask range LFPG 300 [--type large_airport,heliport | --all-types]
+./ask time LFPG KJFK
 ./ask version
 ```
+
+Every query command takes `--json` and then prints exactly what the matching API endpoint returns.
 
 The dev shell comes from `flake.nix` (direnv loads it). The binary needs cgo for `go-sqlite3`.
 
 ## Layout
 
-- `cmd/` — Cobra commands (`init`, `serve`, `version`, `query` — the last is a stub).
+- `cmd/` — Cobra commands. `output.go` holds what the query commands share (opening the store, tables, `--json`).
 - `db/` — schema, indexes and the CSV import. Columns are matched by CSV header name; empty fields become NULL.
 - `repository/` — clones or pulls the OurAirports data repo with go-git.
-- `server/` — HTTP server on the stdlib `ServeMux`.
-  - `airports.go` — all airport queries and row scanning (`getAirportByCode`, `searchAirports`, `getAirportsInRange`).
+- `store/` — every airport question, for both the server and the CLI: `ByCode`, `Search`, `Route`, `InRange`, `LocalTime`, `Countries`, `ImportStatus`. It validates its inputs (`*InputError`, shown to users as-is) and wraps `ErrNotFound`; its result types are the API's JSON.
   - `geo.go` — haversine distance, initial bearing, and the bounding box used to prefilter range queries.
-  - `*_handlers.go` — one file per API area; `web_handlers.go` renders the pages.
+  - `testdata/airports.csv` — the fixture both `store` and `server` tests import.
+- `server/` — HTTP server on the stdlib `ServeMux`. `api_handlers.go` parses parameters and maps store errors to 400/404/500; `web_handlers.go` renders the pages.
 - `web/` — templates and static assets, embedded into the binary (`web.FS`).
   - `templates/layout.html` defines the shared page; each page defines `title`, `content` and optionally `head` and `scripts`.
   - `static/app.css`, `static/app.js` — the only stylesheet and shared script. Fonts (B612) and Leaflet are vendored under `static/`, no CDN. Map tiles come from tile.openstreetmap.org.
