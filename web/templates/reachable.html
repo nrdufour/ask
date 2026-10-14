@@ -47,6 +47,7 @@
 
 {{define "scripts"}}
 <script src="/static/vendor/leaflet/leaflet.js"></script>
+{{if $.Tiles}}<script src="/static/vendor/protomaps-leaflet/protomaps-leaflet.js"></script>{{end}}
 <script>
 (function () {
     var DEFAULT_TYPES = 'large_airport,medium_airport';

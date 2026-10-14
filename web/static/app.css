@@ -345,7 +345,7 @@ tr.best .runway-ident { color: var(--blue); }
 
 /* Leaflet, in the page's own colors */
 .leaflet-container { font: inherit; background: var(--paper); }
-[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
+[data-theme="dark"] .leaflet-container:not(.vector-tiles) .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
 .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--ink); border-radius: 4px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18); }
 .leaflet-popup-content { margin: 12px 14px; font-size: 0.8125rem; line-height: 1.5; }
 .leaflet-container a.leaflet-popup-close-button { color: var(--ink-3); }

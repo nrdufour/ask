@@ -42,3 +42,21 @@ jobs:
             --build-arg IMAGE_REVISION=${{ github.sha }} \
             --build-arg IMAGE_VERSION="$(git describe --tags --always)" \
             --build-arg IMAGE_CREATED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      # A new machine, or a basemap past four weeks, extracts the Protomaps
+      # build in the background. Polling keeps Fly from stopping the machine
+      # before it is done, and shows the result here.
+      - name: Wait for the map tiles
+        shell: bash
+        run: |
+          for _ in $(seq 120); do
+            tiles=$(curl -fsS --max-time 20 https://ask.fly.dev/health | grep -o '"tiles":"[a-z]*"' | cut -d'"' -f4) || tiles=unreachable
+            echo "tiles: $tiles"
+            case "$tiles" in
+              ready) exit 0 ;;
+              failed|disabled) exit 1 ;;
+            esac
+            sleep 30
+          done
+          echo "the basemap was still not ready after an hour"
+          exit 1

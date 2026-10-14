@@ -31,7 +31,7 @@ func newTestServer(t *testing.T) http.Handler {
 		t.Fatal(err)
 	}
 
-	s := &Server{mux: http.NewServeMux(), store: store.New(database)}
+	s := &Server{mux: http.NewServeMux(), store: store.New(database), tiles: newTiles("")}
 	if s.pages, err = parsePages(); err != nil {
 		t.Fatal(err)
 	}
@@ -63,6 +63,7 @@ func TestRoutes(t *testing.T) {
 		{"/static/app.css", 200},
 		{"/static/vendor/leaflet/leaflet.js", 200},
 		{"/nope", 404},
+		{"/tiles/basemap.pmtiles", 404}, // no basemap configured
 		{"/health", 200},
 		{"/version", 200},
 		{"/api/country", 200},
