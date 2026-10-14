@@ -11,7 +11,7 @@
     {{- block "head" .}}{{end}}
     <script>(function(){var t=localStorage.getItem('ask-theme')||'system';document.documentElement.setAttribute('data-theme',t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t)})();</script>
 </head>
-<body{{if .Tiles}} data-tiles="/tiles/basemap.pmtiles"{{end}}>
+<body{{if .Tiles}} data-tiles="/tiles/basemap.pmtiles" data-tiles-max-zoom="{{.TilesMaxZoom}}"{{end}}>
     <header class="topbar">
         <div class="topbar-inner">
             <a href="/" class="brand"><span class="sign">ASK</span> Airport Swiss Knife</a>
