@@ -26,9 +26,12 @@ swap_size_mb = 1024
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'stop'
+  # Always on: Fly stops idle machines by checking for requests in flight,
+  # which killed the monthly basemap extract (20+ minutes, not resumable)
+  # mid-download. Staying on also spares visitors the cold starts.
+  auto_stop_machines = 'off'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
   # Fails a deploy whose new machine never answers.
