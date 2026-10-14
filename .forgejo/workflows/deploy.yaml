@@ -1,0 +1,40 @@
+name: deploy
+
+# Deploys to Fly.io after code lands on main. Fly's remote builder runs the
+# Dockerfile, which bakes the OurAirports data into the image: the weekly
+# schedule redeploys so that data never goes more than a week stale.
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.forgejo/workflows/renovate.yaml'
+      - '.forgejo/workflows/ci.yaml'
+      - '.forgejo/workflows/build.yaml'
+      - 'LICENSE'
+      - 'README.md'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'renovate.json5'
+      - '.envrc'
+      - '.gitignore'
+      - 'justfile'
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # A deploy token scoped to the ask app: fly tokens create deploy -a ask
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          nix develop --command flyctl deploy --remote-only \
+            --build-arg IMAGE_REVISION=${{ github.sha }} \
+            --build-arg IMAGE_CREATED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
