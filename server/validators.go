@@ -4,6 +4,18 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
+)
+
+const (
+	defaultSearchLimit = 100
+	maxSearchLimit     = 500
+)
+
+var (
+	icaoCodeRe    = regexp.MustCompile(`^[a-zA-Z]{4}$`)
+	countryCodeRe = regexp.MustCompile(`^[a-zA-Z]{2}$`)
 )
 
 var validAirportTypes = map[string]bool{
@@ -14,11 +26,6 @@ var validAirportTypes = map[string]bool{
 	"seaplane_base":  true,
 	"closed":         true,
 	"balloonport":    true,
-}
-
-// isValidAirportType checks if the given type string is a known airport type
-func isValidAirportType(t string) bool {
-	return validAirportTypes[t]
 }
 
 // parseAirportTypes splits a comma-separated type string, trims whitespace,
@@ -34,7 +41,7 @@ func parseAirportTypes(typesStr string) ([]string, bool) {
 		if t == "" {
 			continue
 		}
-		if !isValidAirportType(t) {
+		if !validAirportTypes[t] {
 			return nil, false
 		}
 		types = append(types, t)
@@ -42,23 +49,43 @@ func parseAirportTypes(typesStr string) ([]string, bool) {
 	return types, true
 }
 
-// isValidSearchParameter validates that the search parameter contains only allowed characters
-func isValidSearchParameter(param string) bool {
-	// Allow letters, spaces, hyphens, apostrophes, and common punctuation for airport names
-	matched, _ := regexp.MatchString(`^[a-zA-Z\s\-'\.]+$`, param)
-	return matched
+// isValidSearchQuery accepts 2 to 100 printable characters in any script.
+// Queries are bound as SQL parameters, so no character needs filtering for
+// safety; the bounds only keep the scan meaningful and cheap.
+func isValidSearchQuery(q string) bool {
+	n := utf8.RuneCountInString(q)
+	if n < 2 || n > 100 {
+		return false
+	}
+	for _, r := range q {
+		if !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
 }
 
-// isValidCountryCode validates that the country code contains only letters
+// isValidCountryCode validates an ISO 3166-1 alpha-2 country code
 func isValidCountryCode(code string) bool {
-	matched, _ := regexp.MatchString(`^[a-zA-Z]+$`, code)
-	return matched
+	return countryCodeRe.MatchString(code)
 }
 
 // isValidICAOCode validates that the ICAO code is exactly 4 letters
 func isValidICAOCode(code string) bool {
-	matched, _ := regexp.MatchString(`^[a-zA-Z]{4}$`, code)
-	return matched
+	return icaoCodeRe.MatchString(code)
+}
+
+// parseSearchLimit returns the default limit for an empty string, and false
+// when the limit is not an integer in [1, maxSearchLimit].
+func parseSearchLimit(s string) (int, bool) {
+	if s == "" {
+		return defaultSearchLimit, true
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil || n < 1 || n > maxSearchLimit {
+		return 0, false
+	}
+	return n, true
 }
 
 // isValidRange validates that the range string is a positive number up to 10800 NM (half Earth circumference)

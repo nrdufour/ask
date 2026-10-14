@@ -3,21 +3,10 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
-
-	"github.com/ringsaturn/tzf/v2"
 )
-
-var finder tzf.F
-
-func init() {
-	var err error
-	finder, err = tzf.NewDefaultFinder()
-	if err != nil {
-		panic("failed to initialize timezone finder: " + err.Error())
-	}
-}
 
 func (s *Server) airportTimeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -34,9 +23,9 @@ func (s *Server) airportTimeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	airport, err := s.getAirportByICAO(icao)
+	airport, err := s.getAirportByCode(icao)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Airport not found", http.StatusNotFound)
 			return
 		}
@@ -44,7 +33,7 @@ func (s *Server) airportTimeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timezoneName := finder.GetTimezoneName(airport.LongitudeDeg, airport.LatitudeDeg)
+	timezoneName := s.tzFinder.GetTimezoneName(airport.LongitudeDeg, airport.LatitudeDeg)
 	if timezoneName == "" {
 		http.Error(w, "Could not determine timezone for airport location", http.StatusInternalServerError)
 		return

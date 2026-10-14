@@ -1,116 +1,46 @@
-# Airpot Swiss Knife
+# Airport Swiss Knife
 
-## Project Overview
+**ask** is a Go CLI that downloads airport and country data from [OurAirports](https://ourairports.com/), stores it in SQLite, and serves it through a web UI and a JSON API.
 
-**ask** (Airport Swiss Knife) is a Go CLI application that provides access to airport and country data from ourairports.com. It downloads, stores, and serves airport data via both CLI commands and a web server with REST API.
+## Commands
 
-## Development Commands
-
-### Build & Run
 ```bash
-# Build the project
-go build
-# or use the Makefile
-make build
-
-# Run directly
-go run .
-
-# Run specific commands
-./ask init     # Download data and setup local database
-./ask serve    # Start HTTP server (default port 8080)
-./ask query    # Query airport data
-./ask version  # Show version
+just check        # what CI runs: gofmt + nixfmt, vet, staticcheck, tests, build
+just run          # build and serve on :8080
+./ask init        # clone/pull the data and rebuild the database
+./ask serve -p 8080
+./ask version
 ```
 
-### Code Quality & Testing
-```bash
-# Format code
-go fmt ./...
+The dev shell comes from `flake.nix` (direnv loads it). The binary needs cgo for `go-sqlite3`.
 
-# Vet code for issues
-go vet ./...
+## Layout
 
-# Tidy dependencies
-go mod tidy
+- `cmd/` — Cobra commands (`init`, `serve`, `version`, `query` — the last is a stub).
+- `db/` — schema, indexes and the CSV import. Columns are matched by CSV header name; empty fields become NULL.
+- `repository/` — clones or pulls the OurAirports data repo with go-git.
+- `server/` — HTTP server on the stdlib `ServeMux`.
+  - `airports.go` — all airport queries and row scanning (`getAirportByCode`, `searchAirports`, `getAirportsInRange`).
+  - `geo.go` — haversine distance, initial bearing, and the bounding box used to prefilter range queries.
+  - `*_handlers.go` — one file per API area; `web_handlers.go` renders the pages.
+- `web/` — templates and static assets, embedded into the binary (`web.FS`).
+  - `templates/layout.html` defines the shared page; each page defines `title`, `content` and optionally `head` and `scripts`.
+  - `static/app.css`, `static/app.js` — the only stylesheet and shared script. Fonts (B612) and Leaflet are vendored under `static/`, no CDN. Map tiles come from tile.openstreetmap.org.
 
-# Run tests (if any exist)
-go test ./...
-```
+## API
 
-## Architecture
+- `GET /api/airport/search?name=&country=&limit=` — name, city, keywords or exact code; at most 100 results by default (`truncated` says if more matched).
+- `GET /api/airport/distance?departure=&destination=` — NM, km, statute miles and initial true course.
+- `GET /api/airport/reachable?icao=&range=&type=` — airports within range, nearest first.
+- `GET /api/airport/time?icao=` — IANA timezone and local time.
+- `GET /api/country`, `GET /api/import/status`, `GET /health`, `GET /version`.
 
-The application follows a modular structure:
+4-letter codes are looked up by `icao_code`, then `ident`, then `gps_code`: most airports in the data have no `icao_code`.
 
-- **`cmd/`** - CLI commands using Cobra framework
-  - `root.go` - Main command setup with global flags and viper config
-  - `init.go` - Data download and database initialization
-  - `serve.go` - HTTP server startup with graceful shutdown
-  - `query.go` - Data querying functionality
-  - `version.go` - Version information
+## Notes
 
-- **`server/`** - HTTP server implementation
-  - `server.go` - Main server setup with Gorilla Mux router
-  - `*_handlers.go` - HTTP handlers for different endpoints
-  - `types.go` - Data structures and response types
-  - `validators.go` - Input validation logic
-  - `distance.go` - Airport distance calculation utilities
-
-- **`db/`** - Database operations
-  - `database.go` - SQLite database creation and schema
-  - `import.go` - CSV data import from ourairports.com
-
-- **`repository/`** - Data management
-  - `setup.go` - Git repository management for data updates
-
-- **`templates/`** - HTML templates for web interface
-  - Provides web UI for airport search and distance calculations
-
-## Configuration
-
-The application uses Viper for configuration management:
-
-- **Config file**: `$HOME/.ask.yaml` (optional)
-- **Default repository**: `$HOME/.ask/`
-- **Database location**: `$HOME/.ask/db/ask.db`
-- **Data location**: `$HOME/.ask/data/` (ourairports.com git repo)
-
-Global flags:
-- `--repository, -r` - Override default repository directory
-- `--config` - Specify custom config file
-
-## Data Flow
-
-1. **Initialization** (`./ask init`):
-   - Creates repository directory structure
-   - Clones/updates ourairports.com data via Git
-   - Creates SQLite database with airports and countries tables
-   - Imports CSV data with import status tracking
-
-2. **Server Mode** (`./ask serve`):
-   - Starts HTTP server with both API and web endpoints
-   - API endpoints: `/api/airport/search`, `/api/airport/distance`, `/api/country`
-   - Web interface: `/`, `/airports`, `/distance`
-   - Graceful shutdown with SIGINT/SIGTERM handling
-
-## Database Schema
-
-- **airports** - Main airport data with coordinates, codes, and metadata
-- **countries** - Country information with codes and names
-- **import_status** - Tracks data import metadata including git commit info
-
-## Key Dependencies
-
-- `github.com/spf13/cobra` - CLI framework
-- `github.com/spf13/viper` - Configuration management
-- `github.com/gorilla/mux` - HTTP router
-- `github.com/mattn/go-sqlite3` - SQLite database driver
-- `github.com/go-git/go-git/v5` - Git operations for data updates
-
-## Development Notes
-
-- SQLite database is recreated on each `init` to ensure clean state
-- Server includes request logging middleware
-- Distance calculations use geographical coordinates
-- Data is automatically updated from ourairports.com git repository
-- Web interface provides user-friendly access to API functionality
+- The repository directory defaults to `$HOME/.ask` (`--repository`/`-r`): data in `data/`, database in `db/ask.db`. The server opens the database read-only.
+- `init` recreates the database from scratch each time.
+- The Docker image bakes the database in at build time; the container only serves.
+- Version lives in `server/types.go` (`VERSION`); bump it when tagging, along with `IMAGE_VERSION` in the Dockerfile.
+- The server runs in about 55 MB, timezone finder (`tzf` v2.1) included.

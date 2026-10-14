@@ -1,0 +1,142 @@
+{{define "title"}}Search airports · ASK{{end}}
+
+{{define "content"}}
+<h1 class="page-title">Search airports</h1>
+<p class="page-lede">Match a name, city or alternative name, or look up an exact ICAO, IATA or local code.</p>
+
+<form id="searchForm" role="search">
+    <div class="form-row">
+        <div class="field field-grow">
+            <label for="q">Name, city or code</label>
+            <input type="search" id="q" name="q" placeholder="Heathrow, Zürich, LFPG, JFK…" required minlength="2" maxlength="100">
+        </div>
+        <div class="field">
+            <label for="country">Country</label>
+            <select id="country" name="country">
+                <option value="">All countries</option>
+            </select>
+        </div>
+        <button type="submit" class="btn" id="searchButton">Search</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+</form>
+
+<section class="results" id="results" hidden>
+    <div class="results-head">
+        <h2 id="resultsTitle">Results</h2>
+        <span class="results-note" id="resultsNote"></span>
+    </div>
+    <div class="table-wrap" id="resultsTable"></div>
+</section>
+{{end}}
+
+{{define "scripts"}}
+<script>
+(function () {
+    var form = document.getElementById('searchForm');
+    var input = document.getElementById('q');
+    var countrySelect = document.getElementById('country');
+    var button = document.getElementById('searchButton');
+    var status = document.getElementById('status');
+
+    var countriesLoaded = ask.fetchJSON('/api/country').then(function (data) {
+        data.countries.forEach(function (c) {
+            var option = document.createElement('option');
+            option.value = c.code;
+            option.textContent = c.name;
+            countrySelect.appendChild(option);
+        });
+    }).catch(function () {
+        ask.setStatus(status, 'The country list did not load. Search still works across all countries.', true);
+    });
+
+    function rowHTML(ap) {
+        var code = ask.lookupCode(ap);
+        var actions = code
+            ? '<div class="row-actions">' +
+                '<a href="/distance?from=' + code + '">Distance from</a>' +
+                '<a href="/reachable?icao=' + code + '">In range</a>' +
+              '</div>'
+            : '';
+        var name = /^https?:\/\//.test(ap.wikipedia_link || '')
+            ? '<a class="airport-name" href="' + ask.esc(ap.wikipedia_link) + '" rel="noopener">' + ask.esc(ap.name) + '</a>'
+            : '<span class="airport-name">' + ask.esc(ap.name) + '</span>';
+        return '<tr>' +
+            '<td>' + ask.sign(ap) + '</td>' +
+            '<td class="mono">' + ask.esc(ap.iata_code || '') + '</td>' +
+            '<td>' + name + '<div class="airport-sub">' + ask.place(ap) + '</div>' + actions + '</td>' +
+            '<td class="col-optional">' + ask.esc(ask.typeLabel(ap.type)) + '</td>' +
+            '<td class="num col-optional">' + (ap.elevation_ft == null ? '' : ap.elevation_ft.toLocaleString('en') + ' ft') + '</td>' +
+            '</tr>';
+    }
+
+    function showResults(data, query) {
+        var results = document.getElementById('results');
+        document.getElementById('resultsTitle').textContent =
+            data.count === 1 ? '1 airport' : data.count.toLocaleString('en') + ' airports';
+        document.getElementById('resultsNote').textContent = data.truncated
+            ? 'Showing the first ' + data.count + '. Add a country or a longer name to narrow it down.'
+            : '';
+
+        var table = document.getElementById('resultsTable');
+        if (data.count === 0) {
+            table.innerHTML = '<p class="empty">Nothing matches “' + ask.esc(query) +
+                '”. Try part of the name, the city, or a 3- or 4-letter code.</p>';
+        } else {
+            table.innerHTML = '<table><thead><tr>' +
+                '<th>ICAO</th><th>IATA</th><th>Airport</th><th class="col-optional">Type</th>' +
+                '<th class="num col-optional">Elevation</th>' +
+                '</tr></thead><tbody>' + data.airports.map(rowHTML).join('') + '</tbody></table>';
+        }
+        results.hidden = false;
+    }
+
+    async function search(query, country) {
+        button.disabled = true;
+        ask.setStatus(status, 'Searching…');
+        try {
+            var url = '/api/airport/search?name=' + encodeURIComponent(query);
+            if (country) url += '&country=' + encodeURIComponent(country);
+            var data = await ask.fetchJSON(url);
+            ask.setStatus(status, '');
+            showResults(data, query);
+        } catch (err) {
+            ask.setStatus(status, err.message, true);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var query = input.value.trim();
+        var country = countrySelect.value;
+        var params = new URLSearchParams({ q: query });
+        if (country) params.set('country', country);
+        history.pushState(null, '', '?' + params);
+        search(query, country);
+    });
+
+    // The URL holds the search, so results can be shared and survive back/forward.
+    async function fromURL() {
+        var params = new URLSearchParams(location.search);
+        var query = params.get('q') || '';
+        input.value = query;
+        if (params.get('country')) {
+            await countriesLoaded;
+            countrySelect.value = params.get('country');
+        } else {
+            countrySelect.value = '';
+        }
+        if (query.length >= 2) {
+            search(query, countrySelect.value);
+        } else {
+            document.getElementById('results').hidden = true;
+            input.focus();
+        }
+    }
+    window.addEventListener('popstate', fromURL);
+    fromURL();
+})();
+</script>
+{{end}}

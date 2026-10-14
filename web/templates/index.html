@@ -1,0 +1,27 @@
+{{define "title"}}Airport Swiss Knife{{end}}
+
+{{define "content"}}
+<section class="home-hero">
+    <h1>Every airport in the world, one lookup away.</h1>
+    <p>
+        Search {{with .AirportCount}}{{.}} {{end}}airports, heliports and seaplane bases
+        by name, city or code, then measure the great circle between two of them or see what lies within range.
+    </p>
+    <form class="home-search" action="/airports" method="get" role="search">
+        <label for="q" class="visually-hidden">Airport name, city or code</label>
+        <input type="search" id="q" name="q" placeholder="Heathrow, Zürich, LFPG, JFK…" required minlength="2" autofocus>
+        <button type="submit" class="btn">Search</button>
+    </form>
+</section>
+
+<nav class="tools" aria-label="Tools">
+    <a class="tool" href="/distance">
+        <strong>Distance</strong>
+        <span>Great-circle distance and initial true course between two airports, with both local times and the route on a map.</span>
+    </a>
+    <a class="tool" href="/reachable">
+        <strong>In range</strong>
+        <span>Every airport within a given distance of an origin, nearest first, filtered by type.</span>
+    </a>
+</nav>
+{{end}}

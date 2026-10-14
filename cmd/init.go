@@ -26,18 +26,12 @@ var initCmd = &cobra.Command{
 }
 
 func doInit() {
-	// First, ensure the repo directory exists
-	repository.EnsureRepositoryDirExists()
+	if err := repository.RetrieveDataFromGit(); err != nil {
+		fmt.Printf("Error retrieving data: %v\n", err)
+		os.Exit(1)
+	}
 
-	// Then, ensure the data sub dir exists
-	repository.EnsureDataDirExists()
-
-	// Get the data
-	repository.RetrieveDataFromGit()
-
-	// Initialize the database and import airport data
-	err := db.InitializeDatabase()
-	if err != nil {
+	if err := db.InitializeDatabase(); err != nil {
 		fmt.Printf("Error initializing database: %v\n", err)
 		os.Exit(1)
 	}

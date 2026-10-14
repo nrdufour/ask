@@ -14,16 +14,16 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
 )
 
+func dataDir() string {
+	return filepath.Join(viper.GetString("repository"), viper.GetString("data"))
+}
+
 // getGitCommitInfo retrieves the latest git commit information from the data directory
 func getGitCommitInfo() (string, string, error) {
-	repoDir := viper.GetString("repository")
-	dataDir := filepath.Join(repoDir, viper.GetString("data"))
-
-	repo, err := git.PlainOpen(dataDir)
+	repo, err := git.PlainOpen(dataDir())
 	if err != nil {
 		return "", "", fmt.Errorf("failed to open git repository: %w", err)
 	}
@@ -41,217 +41,107 @@ func getGitCommitInfo() (string, string, error) {
 	return ref.Hash().String(), commit.Author.When.Format(time.RFC3339), nil
 }
 
-// updateImportStatus updates the import status table with git commit information
-func updateImportStatus(db *sql.DB, tableName string, recordCount int) error {
-	commitHash, commitDate, err := getGitCommitInfo()
-	if err != nil {
-		return fmt.Errorf("failed to get git commit info: %w", err)
-	}
-
-	importDate := time.Now().Format(time.RFC3339)
-
-	query := `INSERT OR REPLACE INTO import_status 
-			  (table_name, last_import_date, git_commit_hash, git_commit_date, record_count) 
-			  VALUES (?, ?, ?, ?, ?)`
-
-	_, err = db.Exec(query, tableName, importDate, commitHash, commitDate, recordCount)
-	if err != nil {
-		return fmt.Errorf("failed to update import status: %w", err)
-	}
-
-	return nil
-}
-
-// ImportAirportsCSV imports the airports.csv file into the database
-func ImportAirportsCSV(dbPath string) error {
-	repoDir := viper.GetString("repository")
-	dataDir := filepath.Join(repoDir, viper.GetString("data"))
-	csvPath := filepath.Join(dataDir, "airports.csv")
-
-	// Check if CSV file exists
-	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
-		return fmt.Errorf("airports.csv not found at %s", csvPath)
-	}
-
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
-	}
-	defer db.Close()
-
-	// Open CSV file
-	file, err := os.Open(csvPath)
+// importTable imports <table>.csv from the data directory and records the
+// import in import_status.
+func importTable(db *sql.DB, table, commitHash, commitDate string) error {
+	file, err := os.Open(filepath.Join(dataDir(), table+".csv"))
 	if err != nil {
 		return fmt.Errorf("failed to open CSV file: %w", err)
 	}
 	defer file.Close()
 
-	reader := csv.NewReader(file)
+	count, err := ImportCSV(db, table, file)
+	if err != nil {
+		return err
+	}
 
-	// Read header row
+	_, err = db.Exec(`INSERT OR REPLACE INTO import_status
+		(table_name, last_import_date, git_commit_hash, git_commit_date, record_count)
+		VALUES (?, ?, ?, ?, ?)`,
+		table, time.Now().Format(time.RFC3339), commitHash, commitDate, count)
+	if err != nil {
+		return fmt.Errorf("failed to update import status: %w", err)
+	}
+
+	fmt.Printf("Successfully imported %d %s records\n", count, table)
+	return nil
+}
+
+// ImportCSV replaces the content of table with the rows of r. Columns are
+// matched by header name, so CSV columns the schema doesn't know are skipped
+// rather than breaking the import. Empty fields are stored as NULL.
+func ImportCSV(db *sql.DB, table string, r io.Reader) (int, error) {
+	known := columns[table]
+	if known == nil {
+		return 0, fmt.Errorf("unknown table %q", table)
+	}
+
+	reader := csv.NewReader(r)
 	header, err := reader.Read()
 	if err != nil {
-		return fmt.Errorf("failed to read CSV header: %w", err)
+		return 0, fmt.Errorf("failed to read CSV header: %w", err)
 	}
 
-	fmt.Printf("CSV header: %v\n", header)
-
-	// Clear existing data
-	_, err = db.Exec("DELETE FROM airports")
-	if err != nil {
-		return fmt.Errorf("failed to clear existing data: %w", err)
+	// For each schema column, the index of the matching CSV column.
+	var cols []string
+	var idx []int
+	for i, name := range header {
+		for _, k := range known {
+			if name == k {
+				cols = append(cols, name)
+				idx = append(idx, i)
+			}
+		}
+	}
+	if len(cols) == 0 {
+		return 0, fmt.Errorf("CSV header %v matches no %s column", header, table)
 	}
 
-	// Prepare insert statement
-	placeholders := strings.Repeat("?,", len(header)-1) + "?"
-	insertSQL := fmt.Sprintf("INSERT INTO airports VALUES (%s)", placeholders)
-
-	stmt, err := db.Prepare(insertSQL)
+	tx, err := db.Begin()
 	if err != nil {
-		return fmt.Errorf("failed to prepare insert statement: %w", err)
+		return 0, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec("DELETE FROM " + table); err != nil {
+		return 0, fmt.Errorf("failed to clear existing data: %w", err)
+	}
+
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(cols)), ",")
+	stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)",
+		table, strings.Join(cols, ","), placeholders))
+	if err != nil {
+		return 0, fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
 	defer stmt.Close()
 
-	// Begin transaction for better performance
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-
-	recordCount := 0
+	count := 0
+	args := make([]any, len(cols))
 	for {
 		record, err := reader.Read()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to read CSV record: %w", err)
+			return 0, fmt.Errorf("failed to read CSV record: %w", err)
 		}
 
-		// Convert record to interface slice for SQL parameters
-		args := make([]interface{}, len(record))
-		for i, v := range record {
-			args[i] = v
+		for i, j := range idx {
+			if record[j] == "" {
+				args[i] = nil
+			} else {
+				args[i] = record[j]
+			}
 		}
 
-		_, err = tx.Stmt(stmt).Exec(args...)
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to insert record: %w", err)
+		if _, err := stmt.Exec(args...); err != nil {
+			return 0, fmt.Errorf("failed to insert record: %w", err)
 		}
-
-		recordCount++
+		count++
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("failed to commit transaction: %w", err)
 	}
-
-	// Update import status
-	err = updateImportStatus(db, "airports", recordCount)
-	if err != nil {
-		return fmt.Errorf("failed to update import status: %w", err)
-	}
-
-	fmt.Printf("Successfully imported %d airport records\n", recordCount)
-	return nil
-}
-
-// ImportCountriesCSV imports the countries.csv file into the database
-func ImportCountriesCSV(dbPath string) error {
-	repoDir := viper.GetString("repository")
-	dataDir := filepath.Join(repoDir, viper.GetString("data"))
-	csvPath := filepath.Join(dataDir, "countries.csv")
-
-	// Check if CSV file exists
-	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
-		return fmt.Errorf("countries.csv not found at %s", csvPath)
-	}
-
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
-	}
-	defer db.Close()
-
-	// Open CSV file
-	file, err := os.Open(csvPath)
-	if err != nil {
-		return fmt.Errorf("failed to open CSV file: %w", err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-
-	// Read header row
-	header, err := reader.Read()
-	if err != nil {
-		return fmt.Errorf("failed to read CSV header: %w", err)
-	}
-
-	fmt.Printf("CSV header: %v\n", header)
-
-	// Clear existing data
-	_, err = db.Exec("DELETE FROM countries")
-	if err != nil {
-		return fmt.Errorf("failed to clear existing data: %w", err)
-	}
-
-	// Prepare insert statement
-	placeholders := strings.Repeat("?,", len(header)-1) + "?"
-	insertSQL := fmt.Sprintf("INSERT INTO countries VALUES (%s)", placeholders)
-
-	stmt, err := db.Prepare(insertSQL)
-	if err != nil {
-		return fmt.Errorf("failed to prepare insert statement: %w", err)
-	}
-	defer stmt.Close()
-
-	// Begin transaction for better performance
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-
-	recordCount := 0
-	for {
-		record, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to read CSV record: %w", err)
-		}
-
-		// Convert record to interface slice for SQL parameters
-		args := make([]interface{}, len(record))
-		for i, v := range record {
-			args[i] = v
-		}
-
-		_, err = tx.Stmt(stmt).Exec(args...)
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to insert record: %w", err)
-		}
-
-		recordCount++
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	// Update import status
-	err = updateImportStatus(db, "countries", recordCount)
-	if err != nil {
-		return fmt.Errorf("failed to update import status: %w", err)
-	}
-
-	fmt.Printf("Successfully imported %d country records\n", recordCount)
-	return nil
+	return count, nil
 }
