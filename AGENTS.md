@@ -33,7 +33,8 @@ The dev shell comes from `flake.nix` (direnv loads it). The binary needs cgo for
 - `server/` — HTTP server on the stdlib `ServeMux`. `api_handlers.go` parses parameters and maps store errors to 400/404/500; `web_handlers.go` renders the pages.
 - `web/` — templates and static assets, embedded into the binary (`web.FS`).
   - `templates/layout.html` defines the shared page; each page defines `title`, `content` and optionally `head` and `scripts`.
-  - `static/app.css`, `static/app.js` — the only stylesheet and shared script. Fonts (B612) and Leaflet are vendored under `static/`, no CDN. Map tiles come from tile.openstreetmap.org.
+  - `static/app.css`, `static/app.js` — the only stylesheet and shared script. Fonts (B612), Leaflet and protomaps-leaflet are vendored under `static/`, no CDN.
+- Map tiles: `ask serve --tiles <path>` serves a Protomaps PMTiles extract (z0–12, ~18 GB) at `/tiles/basemap.pmtiles`, rendered with protomaps-leaflet. `server/tiles.go` re-extracts it with the `pmtiles` CLI when missing or older than 28 days; `/health` reports its state. Without it the pages use tile.openstreetmap.org. On Fly it lives on the `tiles` volume at `/data`.
 
 ## API
 
@@ -50,7 +51,7 @@ The dev shell comes from `flake.nix` (direnv loads it). The binary needs cgo for
 
 - The repository directory defaults to `$HOME/.ask` (`--repository`/`-r`): data in `data/`, database in `db/ask.db`. The server opens the database read-only.
 - `init` recreates the database from scratch each time.
-- The Docker image bakes the database in at build time; the container only serves.
+- The Docker image bakes the database in at build time; the container only serves. Its entrypoint starts as root only to hand the tiles volume to `appuser`.
 - `.forgejo/workflows/deploy.yaml` deploys to Fly.io on every push to main and weekly (to refresh the data), using the `FLY_API_TOKEN` repo secret. `just deploy` still works by hand.
 - The version comes from git: Go stamps the tag into the binary (`v0.3.0` on a tagged commit, a pseudo-version past it otherwise), so releasing is `git tag vX.Y.Z && git push --tags`. Builds need the tags, hence `fetch-depth: 0` in the workflows.
 - The server runs in about 55 MB, timezone finder (`tzf` v2.1) included.

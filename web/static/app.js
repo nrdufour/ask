@@ -132,9 +132,27 @@
             return t.local_time.slice(11, 16) + ' UTC' + t.utc_offset + ' (' + t.timezone + ')';
         },
 
-        // Add OpenStreetMap tiles. The dark theme inverts them in CSS, so
-        // the theme can change without reloading tiles.
+        // Add the basemap: the self-hosted Protomaps vector tiles when the
+        // server has them (body[data-tiles]), else OpenStreetMap's raster
+        // tiles, which the dark theme inverts in CSS.
         addTiles: function (map) {
+            var url = document.body.dataset.tiles;
+            if (url && window.protomapsL) {
+                map.getContainer().classList.add('vector-tiles');
+                var layer = null;
+                var attribution = '<a href="https://protomaps.com">Protomaps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+                var draw = function () {
+                    if (layer) map.removeLayer(layer);
+                    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    layer = protomapsL.leafletLayer({ url: url, flavor: dark ? 'dark' : 'light', lang: 'en', attribution: attribution });
+                    layer.addTo(map);
+                    layer.bringToBack();
+                };
+                draw();
+                window.addEventListener('theme-changed', draw);
+                map.on('unload', function () { window.removeEventListener('theme-changed', draw); });
+                return;
+            }
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 19

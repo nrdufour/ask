@@ -19,6 +19,9 @@ FROM docker.io/library/golang:1.25.5-alpine3.21 AS build
 WORKDIR /ask
 
 RUN apk update && apk add --no-cache ca-certificates git gcc musl-dev sqlite-dev
+
+# pmtiles extracts the self-hosted basemap from the Protomaps world build.
+RUN CGO_ENABLED=0 go install -ldflags="-s -w" github.com/protomaps/go-pmtiles@v1.31.2
 COPY . .
 RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags="-linkmode external -extldflags '-static' -s -w" -o ask
 
@@ -46,13 +49,14 @@ ARG IMAGE_VENDOR
 ARG IMAGE_URL
 ARG IMAGE_DOCUMENTATION
 
-RUN apk --no-cache add ca-certificates tzdata && \
+RUN apk --no-cache add ca-certificates tzdata su-exec && \
     addgroup -g 1000 appgroup && \
     adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 
 # Templates and static files are embedded in the binary; only the database
 # sits beside it.
 COPY --from=build --chown=appuser:appgroup /ask/ask /app/ask
+COPY --from=build /go/bin/go-pmtiles /app/pmtiles
 COPY --from=build --chown=appuser:appgroup /ask-data/db /home/appuser/.ask/db
 COPY --chown=appuser:appgroup entrypoint.sh /app/entrypoint.sh
 
@@ -72,8 +76,8 @@ LABEL org.opencontainers.image.vendor=$IMAGE_VENDOR
 LABEL org.opencontainers.image.url=$IMAGE_URL
 LABEL org.opencontainers.image.documentation=$IMAGE_DOCUMENTATION
 
-# Switch to non-root user
-USER appuser
+# The entrypoint starts as root only to hand the tiles volume to appuser,
+# then drops to it.
 WORKDIR /app
 
 # Set environment variables

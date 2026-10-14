@@ -8,6 +8,16 @@ primary_region = 'iad'
 
 [build]
 
+# The self-hosted basemap (an 18 GB Protomaps extract) lives on a volume;
+# the server keeps it fresh. See server/tiles.go.
+[env]
+  ASK_TILES = '/data/basemap.pmtiles'
+
+[mounts]
+  source = 'tiles'
+  destination = '/data'
+  initial_size = '25gb'
+
 [http_service]
   internal_port = 8080
   force_https = true

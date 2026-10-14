@@ -20,14 +20,18 @@ type Server struct {
 	mux       *http.ServeMux
 	server    *http.Server
 	store     *store.Store
+	tiles     *tiles
 	pages     map[string]*template.Template
 	assetHash string
 }
 
-func NewServer(port int) (*Server, error) {
+// NewServer serves the database; tilesPath, when set, is where the basemap
+// lives (see tiles.go).
+func NewServer(port int, tilesPath string) (*Server, error) {
 	s := &Server{
-		port: port,
-		mux:  http.NewServeMux(),
+		port:  port,
+		mux:   http.NewServeMux(),
+		tiles: newTiles(tilesPath),
 	}
 
 	st, err := store.Open(db.Path())
@@ -71,6 +75,8 @@ func (s *Server) setupRoutes() {
 	s.mux.HandleFunc("GET /api/country", s.countryListHandler)
 	s.mux.HandleFunc("GET /api/import/status", s.importStatusHandler)
 
+	s.mux.HandleFunc("GET /tiles/basemap.pmtiles", s.tilesHandler)
+
 	// Static files
 	static, _ := fs.Sub(web.FS, "static")
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
@@ -85,6 +91,7 @@ func (s *Server) setupRoutes() {
 
 func (s *Server) Start() error {
 	log.Printf("Starting server on port %d", s.port)
+	s.tiles.refreshIfStale(context.Background())
 	return s.server.ListenAndServe()
 }
 
