@@ -1,5 +1,4 @@
 # flyctl launch added from .gitignore
 **/ask
 **/.direnv
-fly.toml
 **/.claude

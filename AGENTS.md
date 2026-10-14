@@ -52,5 +52,5 @@ The dev shell comes from `flake.nix` (direnv loads it). The binary needs cgo for
 - `init` recreates the database from scratch each time.
 - The Docker image bakes the database in at build time; the container only serves.
 - `.forgejo/workflows/deploy.yaml` deploys to Fly.io on every push to main and weekly (to refresh the data), using the `FLY_API_TOKEN` repo secret. `just deploy` still works by hand.
-- Version lives in `server/types.go` (`VERSION`); bump it when tagging, along with `IMAGE_VERSION` in the Dockerfile.
+- The version comes from git: Go stamps the tag into the binary (`v0.3.0` on a tagged commit, a pseudo-version past it otherwise), so releasing is `git tag vX.Y.Z && git push --tags`. Builds need the tags, hence `fetch-depth: 0` in the workflows.
 - The server runs in about 55 MB, timezone finder (`tzf` v2.1) included.
