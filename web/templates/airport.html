@@ -1,0 +1,262 @@
+{{define "title"}}{{with .Detail}}{{.Airport.Code}} {{.Airport.Name}}{{else}}Airport not found{{end}} · ASK{{end}}
+
+{{define "head"}}
+    <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+{{end}}
+
+{{define "content"}}
+{{with .Detail}}{{$a := .Airport}}
+<header class="airport-head">
+    <span class="sign sign-lg{{if not $a.IcaoCode}} sign-none{{end}}">{{$a.Code}}</span>
+    <div>
+        <h1 class="page-title">{{$a.Name}}</h1>
+        <p class="airport-place">
+            {{- if $a.Municipality}}{{$a.Municipality}}, {{end}}
+            {{- with .RegionName}}{{.}}, {{end}}
+            {{- with .CountryName}}{{.}}{{else}}{{$a.IsoCountry}}{{end}}</p>
+        <p class="airport-links">
+            <a href="/distance?from={{$a.Code}}">Distance from here</a>
+            <a href="/reachable?icao={{$a.Code}}&amp;range=300">Airports in range</a>
+            {{with $a.WikipediaLink}}<a href="{{.}}" rel="noopener">Wikipedia</a>{{end}}
+            {{with $a.HomeLink}}<a href="{{.}}" rel="noopener">Website</a>{{end}}
+        </p>
+    </div>
+</header>
+
+<dl class="facts facts-wide">
+    <dt>Type</dt><dd>{{typeLabel $a.Type}}{{if eq $a.ScheduledService "yes"}}, scheduled service{{end}}</dd>
+    {{with $a.IataCode}}<dt>IATA</dt><dd class="mono">{{.}}</dd>{{end}}
+    {{if and $a.GpsCode (ne $a.GpsCode $a.Code)}}<dt>GPS code</dt><dd class="mono">{{$a.GpsCode}}</dd>{{end}}
+    {{if and $a.LocalCode (ne $a.LocalCode $a.Code)}}<dt>Local code</dt><dd class="mono">{{$a.LocalCode}}</dd>{{end}}
+    {{with $a.ElevationFt}}<dt>Elevation</dt><dd class="num">{{thousands (deref .)}} ft</dd>{{end}}
+    <dt>Position</dt><dd class="num" id="position"></dd>
+    <dt>Local time</dt><dd id="localTime">…</dd>
+</dl>
+
+<div class="map map-airport" id="map"></div>
+
+<section class="detail-section" aria-labelledby="runwaysTitle">
+    <h2 id="runwaysTitle">Runways</h2>
+    {{if .Runways}}
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th>Runway</th><th class="num">Length</th><th class="num col-optional">Width</th>
+                <th>Surface</th><th class="col-optional">Lighting</th><th>True heading</th>
+            </tr></thead>
+            <tbody>
+            {{range .Runways}}
+                <tr{{if .Closed}} class="closed"{{end}}>
+                    <td class="mono runway-ident">{{.LowEnd.Ident}}{{with .HighEnd.Ident}}/{{.}}{{end}}{{if .Closed}} <span class="tag">closed</span>{{end}}</td>
+                    <td class="num">{{with .LengthFt}}{{thousands (deref .)}} ft <span class="airport-sub">{{feetToMeters (deref .)}} m</span>{{end}}</td>
+                    <td class="num col-optional">{{with .WidthFt}}{{thousands (deref .)}} ft{{end}}</td>
+                    <td title="{{.Surface}}">{{.SurfaceLabel}}</td>
+                    <td class="col-optional">{{if .Lighted}}Lighted{{else}}–{{end}}</td>
+                    <td class="num">
+                        {{- template "runwayHeading" .LowEnd}}{{if and .LowEnd.HeadingDeg .HighEnd.HeadingDeg}} / {{end}}{{template "runwayHeading" .HighEnd -}}
+                    </td>
+                </tr>
+            {{end}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <p class="empty-inline">No runway data for this airport.</p>
+    {{end}}
+</section>
+
+{{if .HasRunwayHeadings}}
+<section class="detail-section" aria-labelledby="windTitle">
+    <h2 id="windTitle">Wind components</h2>
+    <form class="form-row" id="windForm">
+        <div class="field">
+            <label for="windDir">Wind from, ° true</label>
+            <input type="number" id="windDir" min="0" max="360" step="1" placeholder="270" inputmode="numeric" required>
+        </div>
+        <div class="field">
+            <label for="windSpeed">Speed, kt</label>
+            <input type="number" id="windSpeed" min="0" max="200" step="1" placeholder="15" inputmode="numeric" required>
+        </div>
+        <button type="submit" class="btn">Compute</button>
+    </form>
+    <div class="table-wrap wind-results" id="windResults" hidden></div>
+    <p class="note" id="windNote" hidden>Headings marked ≈ come from the runway number: magnetic, and rounded to 10°.</p>
+</section>
+{{end}}
+
+<section class="detail-section" aria-labelledby="freqTitle">
+    <h2 id="freqTitle">Frequencies</h2>
+    {{if .Frequencies}}
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Type</th><th>Station</th><th class="num">MHz</th></tr></thead>
+            <tbody>
+            {{range .Frequencies}}
+                <tr><td class="mono">{{.Type}}</td><td>{{.Description}}</td><td class="num">{{mhz .MHz}}</td></tr>
+            {{end}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <p class="empty-inline">No frequencies listed for this airport.</p>
+    {{end}}
+</section>
+
+<section class="detail-section" aria-labelledby="navTitle">
+    <h2 id="navTitle">Navaids within 30 NM</h2>
+    {{if .Navaids}}
+    <div class="table-wrap">
+        <table>
+            <thead><tr>
+                <th>Ident</th><th>Name</th><th>Type</th><th class="num">Frequency</th>
+                <th class="num">Distance</th><th class="num">Bearing</th>
+            </tr></thead>
+            <tbody>
+            {{range .Navaids}}
+                <tr>
+                    <td class="mono">{{.Ident}}</td><td>{{.Name}}</td><td>{{.Type}}</td>
+                    <td class="num">{{navaidFrequency .}}</td>
+                    <td class="num">{{printf "%.1f" .DistanceNM}} NM</td>
+                    <td class="num">{{if gt .DistanceNM 0.05}}{{heading .BearingDeg}}{{else}}on field{{end}}</td>
+                </tr>
+            {{end}}
+            </tbody>
+        </table>
+    </div>
+    <p class="note">Bearing from the airport, true.</p>
+    {{else}}
+    <p class="empty-inline">No navaid within 30 NM.</p>
+    {{end}}
+</section>
+{{else}}
+<h1 class="page-title">No airport “{{.NotFound}}”</h1>
+<p class="page-lede">Nothing in the data has that code. <a href="/airports?q={{.NotFound}}">Search for it</a> by name, city or code instead.</p>
+{{end}}
+{{end}}
+
+{{define "runwayHeading"}}
+    {{- with .HeadingDeg}}{{if eq $.HeadingSource "designator"}}≈{{end}}{{heading (derefFloat .)}}{{end -}}
+{{end}}
+
+{{define "scripts"}}
+{{with .Detail}}
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+    var detail = {{.}};
+    var a = detail.airport;
+
+    function coord(value, pos, neg) {
+        return Math.abs(value).toFixed(4) + '° ' + (value >= 0 ? pos : neg);
+    }
+    document.getElementById('position').textContent =
+        coord(a.latitude_deg, 'N', 'S') + ', ' + coord(a.longitude_deg, 'E', 'W');
+
+    var timeEl = document.getElementById('localTime');
+    ask.localTime(ask.lookupCode(a) || a.ident).then(function (t) { timeEl.textContent = t; })
+        .catch(function () { timeEl.textContent = 'Unknown'; });
+
+    // Map: runways drawn between their thresholds, navaids around.
+    var map = L.map('map', { preferCanvas: false });
+    ask.addTiles(map);
+    var bounds = L.latLngBounds([[a.latitude_deg, a.longitude_deg]]);
+    var strips = [];
+
+    function drawRunways() {
+        strips.forEach(function (s) { map.removeLayer(s); });
+        strips = [];
+        detail.runways.forEach(function (r) {
+            if (r.le.latitude_deg == null || r.he.latitude_deg == null) return;
+            var line = L.polyline([[r.le.latitude_deg, r.le.longitude_deg], [r.he.latitude_deg, r.he.longitude_deg]], {
+                color: ask.cssVar(r.closed ? '--ink-3' : '--magenta'), weight: 6, opacity: 0.9, lineCap: 'butt'
+            }).bindTooltip(r.le.ident + (r.he.ident ? '/' + r.he.ident : '')).addTo(map);
+            strips.push(line);
+            bounds.extend(line.getBounds());
+        });
+    }
+    drawRunways();
+    window.addEventListener('theme-changed', drawRunways);
+
+    L.marker([a.latitude_deg, a.longitude_deg], {
+        icon: L.divIcon({ html: '<span class="map-pin">' + ask.esc(a.icao_code || a.ident) + '</span>', className: 'leaflet-div-icon-clean', iconSize: [0, 0] }),
+        title: a.name, zIndexOffset: 1000, opacity: strips.length ? 0.85 : 1
+    }).addTo(map);
+
+    detail.navaids.forEach(function (n) {
+        L.circleMarker([n.latitude_deg, n.longitude_deg], {
+            radius: 5, weight: 1.5, color: ask.cssVar('--surface'), fillColor: ask.cssVar('--blue'), fillOpacity: 0.9
+        }).bindPopup('<strong>' + ask.esc(n.ident) + '</strong> ' + ask.esc(n.name) + '<br>' + ask.esc(n.type) +
+            '<br>' + n.distance_nm + ' NM').addTo(map);
+    });
+
+    if (strips.length) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    } else {
+        map.setView([a.latitude_deg, a.longitude_deg], 13);
+    }
+
+    // Wind components for every runway end with a known heading.
+    var form = document.getElementById('windForm');
+    if (!form) return;
+
+    var ends = [];
+    detail.runways.forEach(function (r) {
+        if (r.closed) return;
+        [r.le, r.he].forEach(function (e) {
+            if (e.ident && e.heading_deg != null) ends.push(e);
+        });
+    });
+
+    var dirInput = document.getElementById('windDir');
+    var speedInput = document.getElementById('windSpeed');
+
+    function compute() {
+        var dir = parseFloat(dirInput.value);
+        var speed = parseFloat(speedInput.value);
+        if (isNaN(dir) || isNaN(speed)) return;
+
+        var rows = ends.map(function (e) {
+            var angle = (dir - e.heading_deg) * Math.PI / 180;
+            return { end: e, head: speed * Math.cos(angle), cross: speed * Math.sin(angle) };
+        }).sort(function (x, y) { return y.head - x.head; });
+
+        var best = rows.length ? rows[0].head : 0;
+        var approx = false;
+        var html = '<table><thead><tr><th>Runway</th><th class="num">Heading</th><th class="num">Headwind</th><th class="num">Crosswind</th></tr></thead><tbody>';
+        rows.forEach(function (row) {
+            var designator = row.end.heading_source === 'designator';
+            approx = approx || designator;
+            var head = Math.round(row.head), cross = Math.round(row.cross);
+            html += '<tr' + (row.head === best && row.head > 0 ? ' class="best"' : '') + '>' +
+                '<td class="mono runway-ident">' + ask.esc(row.end.ident) + '</td>' +
+                '<td class="num">' + (designator ? '≈' : '') + String(Math.round(row.end.heading_deg) % 360).padStart(3, '0') + '°</td>' +
+                '<td class="num">' + (head >= 0 ? head + ' kt' : '<span class="tailwind">' + (-head) + ' kt tail</span>') + '</td>' +
+                '<td class="num">' + (cross === 0 ? '0 kt' : Math.abs(cross) + ' kt from the ' + (cross > 0 ? 'right' : 'left')) + '</td>' +
+                '</tr>';
+        });
+        html += '</tbody></table>';
+
+        var results = document.getElementById('windResults');
+        results.innerHTML = rows.length ? html : '<p class="empty">No runway here has a known heading.</p>';
+        results.hidden = false;
+        document.getElementById('windNote').hidden = !approx;
+    }
+
+    // ?wind=270/15 fills the wind in and computes, so a check can be shared.
+    form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var params = new URLSearchParams(location.search);
+        params.set('wind', dirInput.value + '/' + speedInput.value);
+        history.replaceState(null, '', '?' + params);
+        compute();
+    });
+    var wind = /^(\d{1,3})\/(\d{1,3})$/.exec(new URLSearchParams(location.search).get('wind') || '');
+    if (wind) {
+        dirInput.value = wind[1];
+        speedInput.value = wind[2];
+        compute();
+    }
+})();
+</script>
+{{end}}
+{{end}}

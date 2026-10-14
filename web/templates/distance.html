@@ -74,7 +74,7 @@
 
     function cardHTML(heading, ap) {
         return '<h3>' + heading + '</h3>' +
-            '<p class="airport-name">' + ask.esc(ap.name) + '</p>' +
+            '<p class="endpoint-name"><a class="airport-name" href="' + ask.airportURL(ap) + '">' + ask.esc(ap.name) + '</a></p>' +
             '<dl class="facts">' +
                 '<dt>Place</dt><dd>' + (ask.place(ap) || '–') + '</dd>' +
                 '<dt>Codes</dt><dd class="mono">' + ask.esc([ap.icao_code || ap.ident, ap.iata_code].filter(Boolean).join(' / ')) + '</dd>' +
@@ -127,7 +127,7 @@
     }
 
     function popup(ap) {
-        return '<strong>' + ask.esc(ap.name) + '</strong><br>' + ask.place(ap);
+        return '<a href="' + ask.airportURL(ap) + '"><strong>' + ask.esc(ap.name) + '</strong></a><br>' + ask.place(ap);
     }
 
     function drawMap(data) {

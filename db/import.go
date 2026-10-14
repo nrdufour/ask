@@ -44,7 +44,7 @@ func getGitCommitInfo() (string, string, error) {
 // importTable imports <table>.csv from the data directory and records the
 // import in import_status.
 func importTable(db *sql.DB, table, commitHash, commitDate string) error {
-	file, err := os.Open(filepath.Join(dataDir(), table+".csv"))
+	file, err := os.Open(filepath.Join(dataDir(), csvFiles[table]))
 	if err != nil {
 		return fmt.Errorf("failed to open CSV file: %w", err)
 	}
@@ -144,4 +144,26 @@ func ImportCSV(db *sql.DB, table string, r io.Reader) (int, error) {
 		return 0, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return count, nil
+}
+
+// ImportDir imports, into tables already created, every table whose CSV file
+// exists in dir (tables are named as in the database: runways.csv,
+// frequencies.csv), without recording an import status. Tests load their
+// fixtures with it.
+func ImportDir(db *sql.DB, dir string) error {
+	for _, table := range tableOrder {
+		f, err := os.Open(filepath.Join(dir, table+".csv"))
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		_, err = ImportCSV(db, table, f)
+		f.Close()
+		if err != nil {
+			return fmt.Errorf("%s: %w", table, err)
+		}
+	}
+	return nil
 }

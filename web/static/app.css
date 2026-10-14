@@ -280,10 +280,29 @@ th.num, td.num { text-align: right; }
 .endpoint { padding: 18px 22px; }
 .endpoint + .endpoint { border-left: 1px solid var(--rule); }
 .endpoint h3 { font-size: 0.8125rem; font-weight: 400; color: var(--ink-3); margin-bottom: 4px; }
-.endpoint .airport-name { font-size: 1.0625rem; margin-bottom: 12px; }
+.endpoint .endpoint-name { font-size: 1.0625rem; margin-bottom: 12px; }
 dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 18px; margin: 0; font-size: 0.875rem; }
 dl.facts dt { color: var(--ink-3); }
 dl.facts dd { margin: 0; }
+
+/* ---------- Airport page ---------- */
+.airport-head { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 28px; }
+.airport-head .sign-lg { margin-top: 4px; }
+.airport-place { color: var(--ink-2); margin-bottom: 8px; }
+.airport-links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.875rem; }
+dl.facts-wide { grid-template-columns: max-content 1fr max-content 1fr; gap: 6px 22px; margin-bottom: 24px; max-width: 760px; }
+.map-airport { height: 420px; margin-bottom: 8px; }
+.detail-section { margin-top: 36px; }
+.detail-section h2 { font-size: 1.125rem; margin-bottom: 12px; }
+.detail-section .form-row { margin-bottom: 14px; }
+.runway-ident { white-space: nowrap; font-weight: 700; }
+tr.closed td { color: var(--ink-3); }
+.tag { font-family: "B612", system-ui, sans-serif; font-weight: 400; font-size: 0.75rem; color: var(--ink-3); border: 1px solid var(--rule-strong); border-radius: 3px; padding: 0 5px; margin-left: 4px; }
+tr.best td { background: var(--blue-tint); }
+tr.best .runway-ident { color: var(--blue); }
+.tailwind { color: var(--error); }
+.empty-inline { color: var(--ink-2); }
+.note { margin-top: 8px; font-size: 0.8125rem; color: var(--ink-3); }
 
 /* ---------- Maps ---------- */
 .map { height: 440px; border: 1px solid var(--rule); background: var(--surface); }
@@ -374,4 +393,6 @@ dl.facts dd { margin: 0; }
     .sign-lg { font-size: 1.125rem; padding: 7px 8px; }
     .col-optional { display: none; }
     .map { height: 320px; }
+    .airport-head { flex-direction: column; gap: 10px; }
+    dl.facts-wide { grid-template-columns: max-content 1fr; }
 }

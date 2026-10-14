@@ -69,6 +69,11 @@
             return '<span class="' + cls + ' sign-none" title="No ICAO code">' + esc(ap.ident) + '</span>';
         },
 
+        // The airport page: by ICAO code when there is one, else by ident.
+        airportURL: function (ap) {
+            return '/airport/' + encodeURIComponent(lookupCode(ap) || ap.ident);
+        },
+
         place: function (ap) {
             return [ap.municipality, ap.iso_country].filter(Boolean).map(esc).join(', ');
         },

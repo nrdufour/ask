@@ -3,7 +3,6 @@ package store
 import (
 	"database/sql"
 	"errors"
-	"os"
 	"slices"
 	"testing"
 
@@ -29,12 +28,7 @@ func newTestStore(t *testing.T) *Store {
 	if err := db.CreateSchema(database); err != nil {
 		t.Fatal(err)
 	}
-	fixture, err := os.Open("testdata/airports.csv")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer fixture.Close()
-	if _, err := db.ImportCSV(database, "airports", fixture); err != nil {
+	if err := db.ImportDir(database, "testdata"); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.CreateIndexes(database); err != nil {
