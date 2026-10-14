@@ -112,7 +112,7 @@
     }
 
     function popup(ap, dist) {
-        return '<strong>' + ask.esc(ap.name) + '</strong><br>' + ask.place(ap) +
+        return '<a href="' + ask.airportURL(ap) + '"><strong>' + ask.esc(ap.name) + '</strong></a><br>' + ask.place(ap) +
             (dist == null ? '' : '<br>' + nm(dist) + ' NM');
     }
 

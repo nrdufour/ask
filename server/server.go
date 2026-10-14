@@ -67,6 +67,7 @@ func (s *Server) setupRoutes() {
 	s.mux.HandleFunc("GET /api/airport/distance", s.distanceHandler)
 	s.mux.HandleFunc("GET /api/airport/time", s.airportTimeHandler)
 	s.mux.HandleFunc("GET /api/airport/reachable", s.reachableHandler)
+	s.mux.HandleFunc("GET /api/airport/{code}", s.airportDetailHandler)
 	s.mux.HandleFunc("GET /api/country", s.countryListHandler)
 	s.mux.HandleFunc("GET /api/import/status", s.importStatusHandler)
 
@@ -79,6 +80,7 @@ func (s *Server) setupRoutes() {
 	s.mux.HandleFunc("GET /airports", s.pageHandler("airports"))
 	s.mux.HandleFunc("GET /distance", s.pageHandler("distance"))
 	s.mux.HandleFunc("GET /reachable", s.pageHandler("reachable"))
+	s.mux.HandleFunc("GET /airport/{code}", s.airportPageHandler)
 }
 
 func (s *Server) Start() error {

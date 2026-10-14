@@ -58,9 +58,7 @@
                 '<a href="/reachable?icao=' + code + '">In range</a>' +
               '</div>'
             : '';
-        var name = /^https?:\/\//.test(ap.wikipedia_link || '')
-            ? '<a class="airport-name" href="' + ask.esc(ap.wikipedia_link) + '" rel="noopener">' + ask.esc(ap.name) + '</a>'
-            : '<span class="airport-name">' + ask.esc(ap.name) + '</span>';
+        var name = '<a class="airport-name" href="' + ask.airportURL(ap) + '">' + ask.esc(ap.name) + '</a>';
         return '<tr>' +
             '<td>' + ask.sign(ap) + '</td>' +
             '<td class="mono">' + ask.esc(ap.iata_code || '') + '</td>' +

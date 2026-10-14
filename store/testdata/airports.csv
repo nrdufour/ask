@@ -1,12 +1,12 @@
-id,ident,type,name,latitude_deg,longitude_deg,elevation_ft,iso_country,municipality,icao_code,iata_code,gps_code
-1,LFPG,large_airport,Charles de Gaulle International Airport,49.0097,2.5479,392,FR,Paris,LFPG,CDG,LFPG
-2,LFPO,large_airport,Paris-Orly Airport,48.7233,2.3794,291,FR,Paris,LFPO,ORY,LFPO
-3,LSZH,large_airport,Zürich Airport,47.4581,8.5481,1416,CH,Zürich,LSZH,ZRH,LSZH
-4,FVHA,large_airport,Robert Gabriel Mugabe International Airport,-17.9318,31.0928,4887,ZW,Harare,,HRE,FVHA
-5,ZW-0001,closed,Old Harare Field,-17.8,31.0,,ZW,Harare,,,FVHA
-6,NFFN,large_airport,Nadi International Airport,-17.7554,177.4431,59,FJ,Nadi,NFFN,NAN,NFFN
-7,NSFA,medium_airport,Faleolo International Airport,-13.83,-172.008,58,WS,Apia,NSFA,APW,NSFA
-8,ENSB,medium_airport,Svalbard Airport Longyear,78.2461,15.4656,88,NO,Longyearbyen,ENSB,LYR,ENSB
-9,CYLT,small_airport,Alert Airport,82.5178,-62.2806,100,CA,Alert,CYLT,YLT,CYLT
-10,BGTL,medium_airport,Thule Air Base,76.5312,-68.7032,251,GL,Pituffik,BGTL,THU,BGTL
-11,XX-0001,heliport,100% Pure_Heliport,49.0,2.5,,FR,Paris,,,
+id,ident,type,name,latitude_deg,longitude_deg,elevation_ft,iso_country,municipality,icao_code,iata_code,gps_code,iso_region
+1,LFPG,large_airport,Charles de Gaulle International Airport,49.0097,2.5479,392,FR,Paris,LFPG,CDG,LFPG,FR-IDF
+2,LFPO,large_airport,Paris-Orly Airport,48.7233,2.3794,291,FR,Paris,LFPO,ORY,LFPO,FR-IDF
+3,LSZH,large_airport,Zürich Airport,47.4581,8.5481,1416,CH,Zürich,LSZH,ZRH,LSZH,
+4,FVHA,large_airport,Robert Gabriel Mugabe International Airport,-17.9318,31.0928,4887,ZW,Harare,,HRE,FVHA,ZW-HA
+5,ZW-0001,closed,Old Harare Field,-17.8,31.0,,ZW,Harare,,,FVHA,
+6,NFFN,large_airport,Nadi International Airport,-17.7554,177.4431,59,FJ,Nadi,NFFN,NAN,NFFN,
+7,NSFA,medium_airport,Faleolo International Airport,-13.83,-172.008,58,WS,Apia,NSFA,APW,NSFA,
+8,ENSB,medium_airport,Svalbard Airport Longyear,78.2461,15.4656,88,NO,Longyearbyen,ENSB,LYR,ENSB,
+9,CYLT,small_airport,Alert Airport,82.5178,-62.2806,100,CA,Alert,CYLT,YLT,CYLT,
+10,BGTL,medium_airport,Thule Air Base,76.5312,-68.7032,251,GL,Pituffik,BGTL,THU,BGTL,
+11,XX-0001,heliport,100% Pure_Heliport,49.0,2.5,,FR,Paris,,,,

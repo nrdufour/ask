@@ -95,6 +95,15 @@ func (s *Server) reachableHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, result)
 }
 
+func (s *Server) airportDetailHandler(w http.ResponseWriter, r *http.Request) {
+	d, err := s.store.Detail(r.PathValue("code"))
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
+	writeJSON(w, d)
+}
+
 func (s *Server) airportTimeHandler(w http.ResponseWriter, r *http.Request) {
 	t, err := s.store.LocalTime(r.URL.Query().Get("icao"))
 	if err != nil {

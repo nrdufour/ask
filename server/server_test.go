@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -28,12 +27,7 @@ func newTestServer(t *testing.T) http.Handler {
 	if err := db.CreateSchema(database); err != nil {
 		t.Fatal(err)
 	}
-	fixture, err := os.Open("../store/testdata/airports.csv")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer fixture.Close()
-	if _, err := db.ImportCSV(database, "airports", fixture); err != nil {
+	if err := db.ImportDir(database, "../store/testdata"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -94,6 +88,16 @@ func TestRoutes(t *testing.T) {
 		{"/api/airport/reachable?icao=LFPG&range=20000", 400},
 		{"/api/airport/reachable?icao=LFPG&range=500&type=spaceport", 400},
 		{"/api/airport/reachable?icao=ZZZZ&range=500", 404},
+
+		{"/airport/LFPG", 200},
+		{"/airport/xx-0001", 200},
+		{"/airport/ZZZZ", 404},
+		{"/airport/not%20a%20code", 404},
+		{"/api/airport/LFPG", 200},
+		{"/api/airport/XX-0001", 200},
+		{"/api/airport/ZZZZ", 404},
+		{"/api/airport/not%20a%20code", 400},
+		{"/api/airport/time?icao=XX-0001", 200},
 
 		{"/api/airport/time?icao=FVHA", 200},
 		{"/api/airport/time?icao=ZZZZ", 404},

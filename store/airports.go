@@ -203,9 +203,10 @@ func (s *Store) InRange(origin string, rangeNM float64, types []string) (*InRang
 	}, nil
 }
 
-// LocalTime returns the timezone and current local time at an airport.
+// LocalTime returns the timezone and current local time at an airport, given
+// a 4-letter code or any OurAirports ident.
 func (s *Store) LocalTime(code string) (*AirportTime, error) {
-	a, err := s.ByCode(code)
+	a, err := s.resolve(code)
 	if err != nil {
 		return nil, err
 	}
