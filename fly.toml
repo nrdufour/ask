@@ -6,6 +6,11 @@
 app = 'ask'
 primary_region = 'iad'
 
+# The server runs in ~55 MB, but extracting the basemap (server/tiles.go)
+# holds the z0-12 tile directories in memory: ~650 MB at peak. Swap lets
+# that monthly job finish without paying for RAM the rest of the time.
+swap_size_mb = 1024
+
 [build]
 
 # The self-hosted basemap (an 18 GB Protomaps extract) lives on a volume;
