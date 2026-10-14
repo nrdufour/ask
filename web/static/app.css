@@ -354,6 +354,42 @@ tr.best .runway-ident { color: var(--blue); }
 .leaflet-bar a, .leaflet-bar a:hover { background: var(--surface); color: var(--ink); border-color: var(--rule); }
 .leaflet-div-icon-clean { background: none; border: 0; }
 
+/* ---------- Navigation feedback ---------- */
+.nav-loading { display: none; }
+.nav-loading.active { display: block; }
+.nav-loading-bar {
+    position: fixed; top: 0; left: 0; height: 3px; width: 100%;
+    background: var(--magenta);
+    transform-origin: left;
+    animation: nav-bar 8s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+    z-index: 2000;
+}
+@keyframes nav-bar { from { transform: scaleX(0); } to { transform: scaleX(0.92); } }
+
+.nav-loading-panel {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: none; align-items: center; gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 6px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+    z-index: 2000;
+}
+.nav-loading.slow .nav-loading-panel { display: flex; }
+.nav-loading-spinner {
+    width: 20px; height: 20px;
+    border: 2.5px solid var(--rule-strong);
+    border-top-color: var(--magenta);
+    border-radius: 50%;
+    animation: nav-spin 0.8s linear infinite;
+}
+@keyframes nav-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .nav-loading-bar { animation: none; transform: scaleX(0.5); }
+    .nav-loading-spinner { display: none; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
     max-width: 1180px;
