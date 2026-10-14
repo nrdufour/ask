@@ -42,5 +42,6 @@ The dev shell comes from `flake.nix` (direnv loads it). The binary needs cgo for
 - The repository directory defaults to `$HOME/.ask` (`--repository`/`-r`): data in `data/`, database in `db/ask.db`. The server opens the database read-only.
 - `init` recreates the database from scratch each time.
 - The Docker image bakes the database in at build time; the container only serves.
+- `.forgejo/workflows/deploy.yaml` deploys to Fly.io on every push to main and weekly (to refresh the data), using the `FLY_API_TOKEN` repo secret. `just deploy` still works by hand.
 - Version lives in `server/types.go` (`VERSION`); bump it when tagging, along with `IMAGE_VERSION` in the Dockerfile.
 - The server runs in about 55 MB, timezone finder (`tzf` v2.1) included.
